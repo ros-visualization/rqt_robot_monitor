@@ -70,7 +70,7 @@ class InspectorWindow(AbstractStatusWidget):
         self.snapshot = QPushButton("StatusSnapshot")
 
         self.timeline_pane = TimelinePane(self, 
-                                          Util._SECONDS_TIMELINE,
+                                          Util.SECONDS_TIMELINE,
                                           self.get_color_for_value)
 
         self.layout_vertical.addWidget(self.disp, 1)
@@ -168,5 +168,5 @@ class InspectorWindow(AbstractStatusWidget):
                        'queue_diagnostic=%d, color_index=%d',
                        len(queue_diagnostic), color_index)
         lv_index = queue_diagnostic[color_index - 1].level
-        return Util._COLOR_DICT[lv_index]        
+        return Util.COLOR_DICT[lv_index]        
         

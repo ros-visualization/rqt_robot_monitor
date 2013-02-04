@@ -61,7 +61,7 @@ class StatusItem(QTreeWidgetItem):
         self.warning_id = None
         self.error_id = None
         
-        self.setText(0, '/' + Util.get_nice_name(self.name))
+        self.setText(0, '/' + Util.get_grn_resource_name(self.name))
         
     def get_name(self):
         return self.name
@@ -106,7 +106,7 @@ class StatusItem(QTreeWidgetItem):
         warnings = 0
         for child_diagnostic_status in children_diag_statuses:
             name = child_diagnostic_status.name
-            device_name = Util.get_nice_name(child_diagnostic_status.name)
+            device_name = Util.get_grn_resource_name(child_diagnostic_status.name)
             headline = "%s : %s" % (child_diagnostic_status.name,
                                     child_diagnostic_status.message)
             
@@ -126,7 +126,7 @@ class StatusItem(QTreeWidgetItem):
                 index_child = names_toplevel_local.index(name)                
                 status_item = self._children_statusitems[ index_child ]
                 status_item.update_children(child_diagnostic_status, diag_array)  # Recursive call.
-                Util._update_status_images(child_diagnostic_status, status_item)
+                Util.update_status_images(child_diagnostic_status, status_item)
                 rospy.logdebug(' StatusItem update 33 index= %d dev_name= %s',
                                index_child, device_name)
                 # status_item.setText(0, headline)
@@ -145,8 +145,8 @@ class StatusItem(QTreeWidgetItem):
  
         rospy.logdebug(' ------ Statusitem.update_children err=%d warn=%d',
                        errors, warnings)
-        return {Util._DICTKEY_TIMES_ERROR : errors, 
-                Util._DICTKEY_TIMES_WARN : warnings}
+        return {Util.DICTKEY_TIMES_ERROR : errors, 
+                Util.DICTKEY_TIMES_WARN : warnings}
 
     def on_click(self):
         if not self.inspector:

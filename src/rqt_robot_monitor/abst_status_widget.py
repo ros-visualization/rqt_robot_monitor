@@ -42,6 +42,11 @@ from python_qt_binding.QtGui import QWidget
 from .util_robot_monitor import Util
 
 class AbstractStatusWidget(QWidget):
+    """
+    An abstract widget that consists of status display part and timeline part,
+    although this class doen't define any concrete design for those display
+    parts. Instead this only defines interface methods.  
+    """
     
     def __init__(self):
         super(AbstractStatusWidget, self).__init__()

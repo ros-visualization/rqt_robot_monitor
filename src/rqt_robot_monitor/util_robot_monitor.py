@@ -41,22 +41,25 @@ from python_qt_binding.QtGui import QColor, QIcon
 
 class Util(object):
     """
-    
+    This class provides variables and methods, which are commonly used 
+    throughout the rqt_robot_monitor package but probably not versatile enough
+    for other pkgs.    
     """
-    #TODO(Isaac) Utils and common configs are mixed in this class.
+    #TODO(Isaac) Separate utility methodss and common configs are mixed in this 
+    # class.
     
-    _SECONDS_TIMELINE = 30
+    SECONDS_TIMELINE = 30
     
     # Instantiating icons that show the device status.
-    _ERR_ICON = QIcon.fromTheme('dialog-error')  # 'face-angry')
-    _WARN_ICON = QIcon.fromTheme('dialog-warning')  # 'face-sick')
-    _OK_ICON = QIcon.fromTheme('emblem-default')  # 'face-laugh')
+    ERR_ICON = QIcon.fromTheme('dialog-error')  # 'face-angry')
+    WARN_ICON = QIcon.fromTheme('dialog-warning')  # 'face-sick')
+    OK_ICON = QIcon.fromTheme('emblem-default')  # 'face-laugh')
     # Added following this QA thread http://goo.gl/83tVZ  
-    _STALE_ICON = QIcon.fromTheme('dialog-question')  # 'face-tired')
+    STALE_ICON = QIcon.fromTheme('dialog-question')  # 'face-tired')
       
-    _IMG_DICT = {0: _OK_ICON, 1: _WARN_ICON, 2: _ERR_ICON, 3: _STALE_ICON}
+    IMG_DICT = {0: OK_ICON, 1: WARN_ICON, 2: ERR_ICON, 3: STALE_ICON}
     
-    _COLOR_DICT = {0: QColor(85, 178, 76),
+    COLOR_DICT = {0: QColor(85, 178, 76),
                    1: QColor(222, 213, 17),
                    2: QColor(178, 23, 46),
                    3: QColor(40, 23, 176)
@@ -67,21 +70,21 @@ class Util(object):
     # simplicity.  
     DiagnosticStatus.STALE = 3
     
-    _DICTKEY_TIMES_ERROR = 'times_errors'
-    _DICTKEY_TIMES_WARN = 'times_warnings'
-    _DICTKEY_INDEX = 'index'
-    _DICTKEY_STATITEM = 'statitem'
+    DICTKEY_TIMES_ERROR = 'times_errors'
+    DICTKEY_TIMES_WARN = 'times_warnings'
+    DICTKEY_INDEX = 'index'
+    DICTKEY_STATITEM = 'statitem'
 
     
     def __init__(self):
         super(Util, self).__init__()
     
     @staticmethod
-    def _update_status_images(diagnostic_status, statusitem):
+    def update_status_images(diagnostic_status, statusitem):
         """
-        Taken from robot_monitor.robot_monitor_panel.py.
+        Update statusitem's status icon w.r.t. diagnostic_status.
         
-        :type status: DiagnosticStatus         
+        :type diagnostic_status: DiagnosticStatus         
         :type node: StatusItem 
         :author: Isaac Saito 
         """
@@ -94,52 +97,71 @@ class Util(object):
                        level, statusitem.last_level, name)        
             if (diagnostic_status.level != statusitem.last_level):  
                 # TODO Apparently diagnosis_status doesn't contain last_level. 
-                statusitem.setIcon(0, Util._IMG_DICT[level])
+                statusitem.setIcon(0, Util.IMG_DICT[level])
                 statusitem.last_level = level
                 return
                
     @staticmethod
-    def get_nice_name(status_name):
+    def get_grn_resource_name(status_name):
         """
+        Return the resource name, ie. the name at the right-end of GRN 
+        (Graph Resource Names, ref. 
+         http://www.ros.org/wiki/ROS/Concepts#Names.Graph_Resource_Names).
+         
+        Ex. If status_name = '/PR2/Power System/Smart Battery1.3',
+            return value will become 'Smart Battery1.3'.
+        
         :param: status_name is a string that may consists of status names that 
                   are delimited by slash.
         :rtype: str
         """
         name = status_name.split('/')[-1]
-        rospy.logdebug(' get_nice_name name = %s', name)
+        rospy.logdebug(' get_grn_resource_name name = %s', name)
         return name
     
     @staticmethod
-    def remove_parent_name(status_name):
-        return ('/'.join(status_name.split('/')[2:])).strip()
-    
-    @staticmethod
     def get_parent_name(status_name):
+        """
+        Return all graph paths in the given status_name except for the resource
+        name. 
+        
+        status_name = Util.get_parent_name(status_name) + '/' +
+                      Util.get_grn_resource_name(status_name) 
+        """
         return ('/'.join(status_name.split('/')[:-1])).strip()
     
     @staticmethod
     def gen_headline_status_green(diagnostic_status):
-        # return "%s : %s" % (get_nice_name(diagnostic_status.status.name), 
-        #                                   diagnostic_status.status.message)
-        return "%s" % Util.get_nice_name(diagnostic_status.name)
+        """
+        Internally uses get_grn_resource_name.
+        
+        :type diagnostic_status: DiagnosticStatus
+        :return: Resource name of the input argument diagnostic_status.
+        :rtype: str
+        """
+        return "%s" % Util.get_grn_resource_name(diagnostic_status.name)
     
     @staticmethod
     def gen_headline_warn_or_err(diagnostic_status):
-        return "%s : %s" % (Util.get_nice_name(diagnostic_status.name),
+        """
+        :return: Tuple of status msg/text. 1st elem = resource name, 
+                 2nd = status text.
+        :rtype: (str, str) 
+        """
+        return "%s : %s" % (Util.get_grn_resource_name(diagnostic_status.name),
                             diagnostic_status.message)
 
     @staticmethod
-    def _get_color_for_message(msg, mode = 0):
+    def get_color_for_message(msg, mode = 0):
         """ 
         
-        Copied from robot_monitor.
-
         :param msg: Either DiagnosticArray or DiagnosticsStatus.
         :param mode: int. When 0, this func will iterate msg to find 
                      DiagnosticsStatus.level and put it into a dict.
                      When 1, this func finds DiagnosticsStatus.level from msg
                      without iteration (thus, msg is expected to be
-                     DiagnosticsStatus instance). 
+                     DiagnosticsStatus instance).
+        :rtype: QColor 
         """
                 
         level = 0
@@ -162,34 +184,36 @@ class Util(object):
         if (level > 2 and min_level <= 2):
             level = 2
                 
-        #return Util._IMG_DICT[level]
+        #return Util.IMG_DICT[level]
         rospy.logdebug(' get_color_for_message color lv=%d', level)
-        return Util._COLOR_DICT[level]
+        return Util.COLOR_DICT[level]
     
     @staticmethod
     def get_correspondent(key, list_statitem):
         """
+        Return a StatusItem instance that corresponds to key
+        from given list_statitem.
         
         :type key: String.  
         :type list_statitem: DiagnosticsStatus
         :rtype: StatusItem
         """
-        names_from_list = [Util.get_nice_name(k.name) for k in list_statitem]
-        key_niced = Util.get_nice_name(key)
+        names_from_list = [Util.get_grn_resource_name(k.name) for k 
+                           in list_statitem]
+        key_rsc_name = Util.get_grn_resource_name(key)
         index_key = -1        
         statitem_key = None
-        if key_niced in names_from_list:
-            index_key = names_from_list.index(key_niced)
+        if key_rsc_name in names_from_list:
+            index_key = names_from_list.index(key_rsc_name)
             statitem_key = list_statitem[index_key]
             rospy.logdebug(' get_correspondent index_key=%s statitem_key=%s',
                           index_key, statitem_key)
-        return {Util._DICTKEY_INDEX : index_key,
-                Util._DICTKEY_STATITEM : statitem_key}
+        return {Util.DICTKEY_INDEX : index_key,
+                Util.DICTKEY_STATITEM : statitem_key}
 
     @staticmethod
     def get_children(name, diag_array):
         """
-        
         :type msg: DiagnosticArray
         :rtype: DiagnosticStatus[]
         """
