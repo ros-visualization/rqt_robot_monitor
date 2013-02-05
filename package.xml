@@ -1,7 +1,20 @@
 <package>
   <name>rqt_robot_monitor</name>
   <version>0.2.8</version>
-  <description>rqt_robot_monitor displays diagnostics_agg topic messages.</description>
+  <description>rqt_robot_monitor displays diagnostics_agg topic messages.
+  
+  All diagnostics are fall into one of three tree panes depending on the 
+  status of diagnostics (normal, warning, error/stale). Status are shown 
+  in trees to represent their hierarchy. Worse status dominates the higher level
+  status. 
+  
+    Ex. 'Computer' category has 3 sub devices. 2 are green but 1 is error. Then
+        'Computer' becomes error.
+      
+  You can look at the detail of each status by double-clicking the tree nodes.
+   
+  Currently re-usable functionalities to other pkgs are not provided.   
+  </description>
   <maintainer email="isaito@willowgarage.com">Isaac Saito</maintainer>
 
   <license>BSD</license>
