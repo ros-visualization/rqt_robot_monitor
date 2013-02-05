@@ -35,29 +35,31 @@
 import rospy
 
 from python_qt_binding.QtCore import Qt, Signal
-from python_qt_binding.QtGui import QPushButton, QTextEdit, QVBoxLayout, QWidget
+from python_qt_binding.QtGui import (QPushButton, QTextEdit, QVBoxLayout, 
+                                     QWidget)
 
 from .abst_status_widget import AbstractStatusWidget
 from .status_snapshot import StatusSnapshot
 from .time_pane import TimelinePane
 from .util_robot_monitor import Util
 
+
 class InspectorWindow(AbstractStatusWidget):
     _sig_write = Signal(str, str)
     _sig_newline = Signal()
     _sig_close_window = Signal()
     _sig_clear = Signal()
-    
+
     def __init__(self, status, close_callback):
-        """      
-               
+        """
         :type status: DiagnosticStatus
-        :param close_callback: When the instance of this class (InspectorWindow)
-                               terminates, this callback gets called.
+        :param close_callback: When the instance of this class
+                               (InspectorWindow) terminates, this callback gets
+                               called.
         """
         #TODO(Isaac) UI construction that currently is done in this method,
         #            needs to be done in .ui file.
-               
+
         super(InspectorWindow, self).__init__()
         self.status = status
         self._close_callback = close_callback
@@ -65,11 +67,11 @@ class InspectorWindow(AbstractStatusWidget):
         self.paused = False
 
         self.layout_vertical = QVBoxLayout(self)
-        
+
         self.disp = QTextEdit(self)
         self.snapshot = QPushButton("StatusSnapshot")
 
-        self.timeline_pane = TimelinePane(self, 
+        self.timeline_pane = TimelinePane(self,
                                           Util.SECONDS_TIMELINE,
                                           self.get_color_for_value)
 
@@ -86,15 +88,16 @@ class InspectorWindow(AbstractStatusWidget):
         self._sig_close_window.connect(self._close_callback)
 
         self.setLayout(self.layout_vertical)
-        self.setGeometry(0, 0, 400, 600)  # TODO better to be configurable where to appear.
+        # TODO better to be configurable where to appear.
+        self.setGeometry(0, 0, 400, 600)
         self.show()
         self.update_status_display(status)
-        
-    def closeEvent(self, event):    
+
+    def closeEvent(self, event):
         # emit signal that should be slotted by StatusItem
-        self._sig_close_window.emit()        
+        self._sig_close_window.emit()
         self.close()
-                
+
     def _write_key_val(self, k, v):
         self.disp.setFontWeight(75)
         self.disp.insertPlainText(k)
@@ -107,38 +110,39 @@ class InspectorWindow(AbstractStatusWidget):
     def pause(self, msg):
         rospy.logdebug('InspectorWin pause PAUSED')
         self.paused = True
-        self.update_status_display(msg);
+        self.update_status_display(msg)
 
     def unpause(self, msg):
         rospy.logdebug('InspectorWin pause UN-PAUSED')
         self.paused = False
 
-    def new_diag(self, msg, is_forced = False):
+    def new_diag(self, msg, is_forced=False):
         """
-        Overridden from AbstractStatusWidget 
-        
+        Overridden from AbstractStatusWidget
+
         :type status: DiagnosticsStatus
         """
-        
+
         if not self.paused:
             self.update_status_display(msg)
             rospy.logdebug('InspectorWin _cb len of queue=%d self.paused=%s',
-                          len(self.timeline_pane._queue_diagnostic), self.paused)
+                          len(self.timeline_pane._queue_diagnostic),
+                          self.paused)
         else:
             if is_forced:
                 self.update_status_display(msg, True)
                 rospy.logdebug('@@@InspectorWin _cb PAUSED window updated')
             else:
                 rospy.logdebug('@@@InspectorWin _cb PAUSED not updated')
-                   
-    def update_status_display(self, status, is_forced = False):
+
+    def update_status_display(self, status, is_forced=False):
         """
-        :type status: DiagnosticsStatus 
+        :type status: DiagnosticsStatus
         """
-        
+
         if not self.paused or (self.paused and is_forced):
             self.timeline_pane.new_diagnostic(status)
-              
+
             rospy.logdebug('InspectorWin update_status_display 1')
 
             self.status = status
@@ -156,17 +160,16 @@ class InspectorWindow(AbstractStatusWidget):
     def _take_snapshot(self):
         snap = StatusSnapshot(self.status)
         self.snaps.append(snap)
-        
+
     def get_color_for_value(self, queue_diagnostic, color_index):
         """
         Overridden from AbstractStatusWidget.
-        
+
         :type color_index: int
         """
-                
+
         rospy.logdebug('InspectorWindow get_color_for_value ' +
                        'queue_diagnostic=%d, color_index=%d',
                        len(queue_diagnostic), color_index)
         lv_index = queue_diagnostic[color_index - 1].level
-        return Util.COLOR_DICT[lv_index]        
-        
+        return Util.COLOR_DICT[lv_index]

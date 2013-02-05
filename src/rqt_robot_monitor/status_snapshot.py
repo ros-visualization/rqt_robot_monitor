@@ -34,9 +34,10 @@
 
 from python_qt_binding.QtGui import QTextEdit
 
+
 class StatusSnapshot(QTextEdit):
     """Display a single static status message. Helps facilitate copy/paste"""
-            
+
     def __init__(self, status):
         super(StatusSnapshot, self).__init__()
 
@@ -57,7 +58,7 @@ class StatusSnapshot(QTextEdit):
         self.setFontWeight(75)
         self.insertPlainText(str(k))
         self.insertPlainText(': ')
-     
+
         self.setFontWeight(50)
         self.insertPlainText(str(v))
-        self.insertPlainText('\n')           
+        self.insertPlainText('\n')

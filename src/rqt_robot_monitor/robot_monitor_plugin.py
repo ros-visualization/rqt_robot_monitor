@@ -75,4 +75,5 @@ class RobotMonitorPlugin(Plugin):
 
         Overriding Plugin's method.
         """
-        self._robot_monitor.restore_settings(plugin_settings, instance_settings)
+        self._robot_monitor.restore_settings(plugin_settings,
+                                             instance_settings)
