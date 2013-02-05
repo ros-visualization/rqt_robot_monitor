@@ -37,34 +37,34 @@ import rospy
 
 from .robot_monitor import RobotMonitorWidget
 
-class RobotMonitorPlugin(Plugin):
 
+class RobotMonitorPlugin(Plugin):
     def __init__(self, context):
         """
         :type context: qt_gui.PluginContext
         """
-        super(RobotMonitorPlugin, self).__init__(context)        
+        super(RobotMonitorPlugin, self).__init__(context)
         self._robot_monitor = RobotMonitorWidget(context, '/diagnostics_agg')
         if context.serial_number() > 1:
             self._robot_monitor.setWindowTitle(
-                 self._robot_monitor.windowTitle() + 
+                 self._robot_monitor.windowTitle() +
                       (' (%d)' % context.serial_number()))
         context.add_widget(self._robot_monitor)
-        self.setObjectName('rqt Robot Monitor')        
-        
-    def shutdown_plugin (self):
+        self.setObjectName('rqt Robot Monitor')
+
+    def shutdown_plugin(self):
         """
         Call RobotMonitorWidget's corresponding function.
-        
+
         Overriding Plugin's method.
         """
         rospy.logdebug('In RobotMonitorPlugin shutdown_plugin')
-        self._robot_monitor.shutdown() # Closes unclosed popup windows.
+        self._robot_monitor.shutdown()  # Closes unclosed popup windows.
 
     def save_settings(self, plugin_settings, instance_settings):
         """
         Call RobotMonitorWidget's corresponding function.
-        
+
         Overriding Plugin's method.
         """
         self._robot_monitor.save_settings(plugin_settings, instance_settings)
@@ -72,7 +72,7 @@ class RobotMonitorPlugin(Plugin):
     def restore_settings(self, plugin_settings, instance_settings):
         """
         Call RobotMonitorWidget's corresponding function.
-        
+
         Overriding Plugin's method.
         """
         self._robot_monitor.restore_settings(plugin_settings, instance_settings)

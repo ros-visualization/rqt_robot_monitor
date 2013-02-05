@@ -201,15 +201,15 @@ class Util(object):
         names_from_list = [Util.get_grn_resource_name(k.name) for k 
                            in list_statitem]
         key_rsc_name = Util.get_grn_resource_name(key)
-        index_key = -1        
+        index_key = -1
         statitem_key = None
         if key_rsc_name in names_from_list:
             index_key = names_from_list.index(key_rsc_name)
             statitem_key = list_statitem[index_key]
             rospy.logdebug(' get_correspondent index_key=%s statitem_key=%s',
                           index_key, statitem_key)
-        return {Util.DICTKEY_INDEX : index_key,
-                Util.DICTKEY_STATITEM : statitem_key}
+        return {Util.DICTKEY_INDEX: index_key,
+                Util.DICTKEY_STATITEM: statitem_key}
 
     @staticmethod
     def get_children(name, diag_array):
@@ -217,13 +217,12 @@ class Util(object):
         :type msg: DiagnosticArray
         :rtype: DiagnosticStatus[]
         """
-        
+
         ret = []
-        for k in diag_array.status:  # k is DiagnosticStatus. 
-            if k.name.startswith(name):  # Starting with self.name means k 
+        for k in diag_array.status:  # k is DiagnosticStatus.
+            if k.name.startswith(name):  # Starting with self.name means k
                                        # is either top/parent node or its child.
-                if not k.name == name:  # Child's name must be different 
-                                            # from that of the top/parent node.  
+                if not k.name == name:  # Child's name must be different
+                                            # from that of the top/parent node.
                     ret.append(k)
-        return ret      
-         
+        return ret
