@@ -63,16 +63,15 @@ class RobotMonitorWidget(AbstractStatusWidget):
 
     def __init__(self, context, topic):
         """
-
-        :type context:
-        :type topic:
+        :param context: plugin context hook to enable adding widgets as a ROS_GUI pane, ''PluginContext''
+        :param topic: Diagnostic topic to subscribe to ''str''
         """
 
         super(RobotMonitorWidget, self).__init__()
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_robot_monitor'), 'resource',
                                'rqt_robot_monitor_mainwidget.ui')
-        loadUi(ui_file, self)
+        loadUi(ui_file, self, {'TimelinePane': TimelinePane})
 
         obj_name = 'Robot Monitor'
         self.setObjectName(obj_name)
@@ -94,14 +93,9 @@ class RobotMonitorWidget(AbstractStatusWidget):
 
         self._sig_tree_nodes_updated.connect(self._tree_nodes_updated)
 
-        # TODO Declaring timeline pane.
-        #      Needs to be stashed away into .ui file but so far failed.
-        self.timeline_pane = TimelinePane(self, Util.SECONDS_TIMELINE,
+        self.timeline_pane.set_timeline_data(Util.SECONDS_TIMELINE,
                                           self.get_color_for_value,
                                           self.on_pause)
-
-        self.vlayout_top.addWidget(self.timeline_pane)
-        self.timeline_pane.show()
 
         self._paused = False
         self._is_stale = False

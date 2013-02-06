@@ -120,8 +120,19 @@
      </widget>
     </widget>
    </item>
+   <item>
+    <widget class="TimelinePane" name="timeline_pane">
+    </widget>
+   </item>
   </layout>
  </widget>
+<customwidgets>
+  <customwidget>
+   <class>TimelinePane</class>
+   <extends>QWidget</extends>
+   <header>rqt_robot_monitor.time_pane</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -53,8 +53,8 @@ class TimelinePane(QWidget):
 
     sig_update = Signal()
 
-    def __init__(self, parent, len_timeline,
-                 color_callback,
+    def __init__(self, parent, len_timeline=None,
+                 color_callback=None,
                  pause_callback=None):
         """
 
@@ -66,28 +66,33 @@ class TimelinePane(QWidget):
 
         super(TimelinePane, self).__init__()
         self._parent = parent
+        self.set_timeline_data(len_timeline, color_callback, pause_callback)
 
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_robot_monitor'), 'resource',
-                               'rqt_robot_monitor_timelinepane.ui')
-        loadUi(ui_file, self, {'TimelineView': TimelineView})
+    def set_timeline_data(self, len_timeline=None,
+                 color_callback=None,
+                 pause_callback=None):
+        if len_timeline:
+            rp = rospkg.RosPack()
+            ui_file = os.path.join(rp.get_path('rqt_robot_monitor'), 'resource',
+                                   'rqt_robot_monitor_timelinepane.ui')
+            loadUi(ui_file, self, {'TimelineView': TimelineView})
 
-        self._pause_callback = pause_callback
-        self._timeline_view.set_init_data(1, len_timeline, 5, color_callback)
+            self._pause_callback = pause_callback
+            self._timeline_view.set_init_data(1, len_timeline, 5, color_callback)
 
-        self._scene = QGraphicsScene(self._timeline_view)
-        self._timeline_view.setScene(self._scene)
-        self._timeline_view.show()
+            self._scene = QGraphicsScene(self._timeline_view)
+            self._timeline_view.setScene(self._scene)
+            self._timeline_view.show()
 
-        self._queue_diagnostic = deque()
-        self._len_timeline = len_timeline
-        self._paused = False
-        self._tracking_latest = True
-        self._last_sec_marker_at = 2
-        self._last_msg = None
+            self._queue_diagnostic = deque()
+            self._len_timeline = len_timeline
+            self._paused = False
+            self._tracking_latest = True
+            self._last_sec_marker_at = 2
+            self._last_msg = None
 
-        self._pause_button.clicked[bool].connect(self._pause)
-        self.sig_update.connect(self._timeline_view.slot_redraw)
+            self._pause_button.clicked[bool].connect(self._pause)
+            self.sig_update.connect(self._timeline_view.slot_redraw)
 
     def mouse_release(self, event):
         """
