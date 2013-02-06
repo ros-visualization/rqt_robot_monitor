@@ -34,11 +34,9 @@
 
 import rospy
 
-from python_qt_binding import loadUi
-from python_qt_binding.QtCore import QPointF, Qt, QRect, QSize, Signal
-from python_qt_binding.QtGui import (QBrush, QColor, QGraphicsPixmapItem, 
-                                     QGraphicsView, QIcon, QPainter, QPen, 
-                                     QWidget)
+from python_qt_binding.QtCore import QPointF, Signal
+from python_qt_binding.QtGui import (QColor, QGraphicsPixmapItem,
+                                     QGraphicsView, QIcon)
 
 
 class TimelineView(QGraphicsView):
@@ -196,8 +194,6 @@ class TimelineView(QGraphicsView):
 
         self._parent._scene.clear()
 
-        is_enabled = self.isEnabled()
-
         qsize = self.size()
         width_tl = qsize.width()
 
@@ -205,10 +201,8 @@ class TimelineView(QGraphicsView):
                      self._min_num_seconds)
 
         len_queue = length_tl
-        #w = float(width_tl / len_queue) # This returns always 0 in
-                                        # the 1st decimal point, which causes
-                                        # timeline not fit nicely.
         w = width_tl / float(len_queue)
+        is_enabled = self.isEnabled()
 
         for i, m in enumerate(self._parent.get_diagnostic_queue()):
             h = self.viewport().height()
@@ -223,12 +217,12 @@ class TimelineView(QGraphicsView):
             else:
                 qcolor = QColor('grey')
 
-            # TODO For adding gradation to the cell color. Not used yet.
-            end_color = QColor(0.5 * QColor('red').value(),
-                               0.5 * QColor('green').value(),
-                               0.5 * QColor('blue').value())
+#  TODO Use this code for adding gradation to the cell color.
+#            end_color = QColor(0.5 * QColor('red').value(),
+#                               0.5 * QColor('green').value(),
+#                               0.5 * QColor('blue').value())
 
-            rect = self._parent._scene.addRect(w * i, 0, w, h,
+            self._parent._scene.addRect(w * i, 0, w, h,
                                                QColor('white'), qcolor)
             rospy.logdebug('slot_redraw #%d th loop w=%s width_tl=%s',
                            i, w, width_tl)

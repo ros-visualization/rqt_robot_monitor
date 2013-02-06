@@ -34,9 +34,8 @@
 
 import rospy
 
-from python_qt_binding.QtCore import Qt, Signal
-from python_qt_binding.QtGui import (QPushButton, QTextEdit, QVBoxLayout, 
-                                     QWidget)
+from python_qt_binding.QtCore import Signal
+from python_qt_binding.QtGui import QPushButton, QTextEdit, QVBoxLayout
 
 from .abst_status_widget import AbstractStatusWidget
 from .status_snapshot import StatusSnapshot

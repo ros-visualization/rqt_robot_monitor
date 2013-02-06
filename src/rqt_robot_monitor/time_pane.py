@@ -37,8 +37,8 @@ from math import floor
 import os
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import QPointF, QSize, Qt, Signal
-from python_qt_binding.QtGui import QColor, QIcon, QGraphicsScene, QWidget
+from python_qt_binding.QtCore import Signal
+from python_qt_binding.QtGui import QGraphicsScene, QWidget
 import rospy
 import rospkg
 

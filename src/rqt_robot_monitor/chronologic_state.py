@@ -32,7 +32,7 @@
 #
 # Author: Isaac Saito, Ze'ev Klapow
 
-from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
+from diagnostic_msgs.msg import DiagnosticStatus
 from python_qt_binding.QtGui import QTreeWidgetItem
 import rospy
 

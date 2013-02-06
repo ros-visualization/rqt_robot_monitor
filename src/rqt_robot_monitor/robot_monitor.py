@@ -37,8 +37,8 @@ import rospkg
 
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import Qt, QTimer, Signal
-from python_qt_binding.QtGui import QIcon, QTextEdit, QWidget
+from python_qt_binding.QtCore import QTimer, Signal
+from python_qt_binding.QtGui import QColor
 import rospy
 
 from .abst_status_widget import AbstractStatusWidget
@@ -349,7 +349,6 @@ class RobotMonitorWidget(AbstractStatusWidget):
 
         if paused:
             self.pause(diagnostic_arr)
-        # if (not _paused and len(self._viewers) > 0):
         elif (len(self._toplv_statusitems) > 0):
             diag_array_queue = self.timeline_pane._get_diagnosticarray()
             statitems = []
@@ -364,10 +363,10 @@ class RobotMonitorWidget(AbstractStatusWidget):
             else:
                 statitem_toplv.enable()
                 for state_instant in statitems:
-                    all = state_instant.get_items()
-                    if (all.has_key(statitem_toplv.get_name())):
+                    all_states = state_instant.get_items()
+                    if statitem_toplv.get_name() in all_states:
                         statitem_toplv.update(
-                                        all[statitem_toplv.get_name()].status)
+                                all_states[statitem_toplv.get_name()].status)
 
     def _update_flat_tree(self, diag_arr):
         """
@@ -414,11 +413,11 @@ class RobotMonitorWidget(AbstractStatusWidget):
                     # Get the corresponding statusitem from the list of current
                     # WARN statusitems. The copy of the eturned statusitems
                     # still stays in the given list.
-                    statitem_curr = self._get_statitem(dev_index_warn_curr,
+                    self._get_statitem(dev_index_warn_curr,
                                                        self._warn_statusitems,
                                                        self.warn_flattree, 1)
                 elif 0 <= dev_index_err_curr:
-                    statitem_curr = self._get_statitem(dev_index_err_curr,
+                    self._get_statitem(dev_index_err_curr,
                                                        self._err_statusitems,
                                                        self.err_flattree, 1)
 
@@ -587,8 +586,7 @@ class RobotMonitorWidget(AbstractStatusWidget):
         len_q = len(queue_diagnostic)
         rospy.logdebug(' get_color_for_value color_index=%d len_q=%d',
                       color_index, len_q)
-        if (color_index == 1 and len_q == 0):  # TODO Needs to be reverted back
-        # if (color_index <= 2 and len_q == 0): # TODO This line is Debug only
+        if (color_index == 1 and len_q == 0):
             return QColor('grey')
         return Util.get_color_for_message(queue_diagnostic[color_index - 1])
                                 # When _queue_diagnostic is empty,

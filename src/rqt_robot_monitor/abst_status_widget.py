@@ -32,14 +32,7 @@
 #
 # Author: Isaac Saito
 
-import os
-
-import rospy
-
-from python_qt_binding.QtCore import Qt
 from python_qt_binding.QtGui import QWidget
-
-from .util_robot_monitor import Util
 
 
 class AbstractStatusWidget(QWidget):
