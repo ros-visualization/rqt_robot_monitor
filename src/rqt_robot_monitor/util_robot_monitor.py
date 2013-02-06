@@ -186,12 +186,12 @@ class Util(object):
     @staticmethod
     def get_correspondent(key, list_statitem):
         """
-        Return a StatusItem instance that corresponds to key
-        from given list_statitem.
+        Return a dictionary of StatusItem instance and its index that
+        corresponds to key from given list_statitem.
 
         :type key: String.
         :type list_statitem: DiagnosticsStatus
-        :rtype: StatusItem
+        :rtype: (str, StatusItem)
         """
         names_from_list = [Util.get_grn_resource_name(k.name) for k
                            in list_statitem]

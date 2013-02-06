@@ -116,7 +116,7 @@ class InspectorWindow(AbstractStatusWidget):
         rospy.logdebug('InspectorWin pause UN-PAUSED')
         self.paused = False
 
-    def new_diag(self, msg, is_forced=False):
+    def new_diagnostic(self, msg, is_forced=False):
         """
         Overridden from AbstractStatusWidget
 

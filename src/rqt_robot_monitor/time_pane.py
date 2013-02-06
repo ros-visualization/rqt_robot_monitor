@@ -163,7 +163,7 @@ class TimelinePane(QWidget):
         # Fetch corresponding previous DiagsnoticArray instance from queue,
         # and sig_update trees.
         msg = self._queue_diagnostic[xpos_marker]
-        self._parent.new_diag(msg, True)
+        self._parent.new_diagnostic(msg, True)
 
     def new_diagnostic(self, msg):
         """
@@ -190,6 +190,8 @@ class TimelinePane(QWidget):
 
         self._queue_diagnostic.append(msg)
         if (len(self._queue_diagnostic) > self._len_timeline):
+            # Remove the msg in the record, which is older than the specified
+            # time.
             self._queue_diagnostic.popleft()
 
         new_len = len(self._queue_diagnostic)

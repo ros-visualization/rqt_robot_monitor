@@ -34,7 +34,7 @@
      <property name="handleWidth">
       <number>9</number>
      </property>
-     <widget class="QTreeWidget" name="err_tree">
+     <widget class="QTreeWidget" name="err_flattree">
       <property name="minimumSize">
        <size>
         <width>75</width>
@@ -58,7 +58,7 @@
        </property>
       </column>
      </widget>
-     <widget class="QTreeWidget" name="warn_tree">
+     <widget class="QTreeWidget" name="warn_flattree">
       <property name="minimumSize">
        <size>
         <width>75</width>

@@ -59,9 +59,6 @@ class StatusItem(QTreeWidgetItem):
         self.inspector = None
         self.status = status  # DiagnosticsStatus
 
-        self.warning_id = None
-        self.error_id = None
-
         self.setText(0, '/' + Util.get_grn_resource_name(self.name))
 
     def get_name(self):

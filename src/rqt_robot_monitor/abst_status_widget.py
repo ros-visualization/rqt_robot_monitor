@@ -52,8 +52,9 @@ class AbstractStatusWidget(QWidget):
     def __init__(self):
         super(AbstractStatusWidget, self).__init__()
 
-    def new_diag(self, msg, is_forced=False):
+    def new_diagnostic(self, msg, is_forced=False):
         """
+        Needs overridden in derived classes.
 
         :param msg: This can be a function that takes either
                     { DiagnosticArray, DiagnosticsStatus } as an argument.

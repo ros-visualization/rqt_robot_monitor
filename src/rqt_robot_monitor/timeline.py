@@ -83,11 +83,13 @@ class TimelineView(QGraphicsView):
         self._xpos_marker = xpos_marker
         self._color_callback = color_callback
 
+    # !!! BEGIN DO NOT DELETE. !!!
     # def paintEvent(self, event):
     ## Enabling this will collide with QGraphicsScene and ends up
     ## with QGraphicsScene not being updated.
         # rospy.logdebug('test')
         # self.parent.slot_redraw()
+    # !!! END DO NOT DELETE. !!!
 
     def set_range(self, min_val, max_val):
         """
