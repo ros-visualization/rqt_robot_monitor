@@ -66,19 +66,20 @@ class TimelinePane(QWidget):
 
         super(TimelinePane, self).__init__()
         self._parent = parent
-        self.set_timeline_data(len_timeline, color_callback, pause_callback)
 
     def set_timeline_data(self, len_timeline=None,
                  color_callback=None,
                  pause_callback=None):
         if len_timeline:
             rp = rospkg.RosPack()
-            ui_file = os.path.join(rp.get_path('rqt_robot_monitor'), 'resource',
+            ui_file = os.path.join(rp.get_path('rqt_robot_monitor'),
+                                   'resource',
                                    'rqt_robot_monitor_timelinepane.ui')
             loadUi(ui_file, self, {'TimelineView': TimelineView})
 
             self._pause_callback = pause_callback
-            self._timeline_view.set_init_data(1, len_timeline, 5, color_callback)
+            self._timeline_view.set_init_data(1, len_timeline, 5,
+                                              color_callback)
 
             self._scene = QGraphicsScene(self._timeline_view)
             self._timeline_view.setScene(self._scene)

@@ -57,6 +57,7 @@ class RobotMonitorWidget(AbstractStatusWidget):
     """
 
     _sig_tree_nodes_updated = Signal(int)
+    _sig_new_diagnostic = Signal(DiagnosticArray)
     _TREE_ALL = 1
     _TREE_WARN = 2
     _TREE_ERR = 3
@@ -72,7 +73,7 @@ class RobotMonitorWidget(AbstractStatusWidget):
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_robot_monitor'), 'resource',
                                'rqt_robot_monitor_mainwidget.ui')
-        loadUi(ui_file, self)
+        loadUi(ui_file, self, {'TimelinePane': TimelinePane})
 
         obj_name = 'Robot Monitor'
         self.setObjectName(obj_name)
@@ -93,7 +94,7 @@ class RobotMonitorWidget(AbstractStatusWidget):
 
         # TODO: Declaring timeline pane.
         #      Needs to be stashed away into .ui file but so far failed.
-        self.timeline_pane = TimelinePane(self, Util.SECONDS_TIMELINE,
+        self.timeline_pane.set_timeline_data(Util.SECONDS_TIMELINE,
                                           self.get_color_for_value,
                                           self.on_pause)
 
@@ -114,6 +115,8 @@ class RobotMonitorWidget(AbstractStatusWidget):
                                     DiagnosticArray,  # type of the topic
                                     self._cb)
 
+        self._sig_new_diagnostic.connect(self.new_diagnostic)
+
     def _cb(self, msg):
         """
         Intended to be called from non-Qt thread,
@@ -121,7 +124,10 @@ class RobotMonitorWidget(AbstractStatusWidget):
 
         :type msg: DiagnosticArray
         """
-        self.new_diagnostic(msg)
+
+        # Directly calling callback function 'new_diagnostic' here results in
+        # segfaults.
+        self._sig_new_diagnostic.emit(msg)
 
     def new_diagnostic(self, msg, is_forced=False):
         """
@@ -153,9 +159,9 @@ class RobotMonitorWidget(AbstractStatusWidget):
 
     def _notify_statitems(self, diag_arr):
         """
-        Notify new message arrival to all existing InespectorWindow
-        instances that are encapsulated in StatusItem instances contained
-        in self._toplevel_statitems.
+        Notify new message arrival to all existing InespectorWindow instances
+        that are encapsulated in StatusItem instances contained in
+        self._toplevel_statitems.
         """
 
         for statitem_new in diag_arr.status:
