@@ -32,7 +32,7 @@
 #
 # Author: Isaac Saito, Ze'ev Klapow
 
-from diagnostic_msgs.msg import DiagnosticStatus
+from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 from python_qt_binding.QtGui import QTreeWidgetItem
 import rospy
 
@@ -58,6 +58,9 @@ class StatusItem(QTreeWidgetItem):
         self.last_level = None
         self.inspector = None
         self.status = status  # DiagnosticsStatus
+
+        self.warning_id = None
+        self.error_id = None
 
         self.setText(0, '/' + Util.get_grn_resource_name(self.name))
 
@@ -104,8 +107,9 @@ class StatusItem(QTreeWidgetItem):
             name = child_diagnostic_status.name
             device_name = Util.get_grn_resource_name(
                                                   child_diagnostic_status.name)
-
             if (child_diagnostic_status.level != DiagnosticStatus.OK):
+                Util.gen_headline_warn_or_err(
+                                                       child_diagnostic_status)
                 if (child_diagnostic_status.level == DiagnosticStatus.ERROR):
                     errors = errors + 1
                 elif (child_diagnostic_status.level == DiagnosticStatus.WARN):
@@ -118,29 +122,28 @@ class StatusItem(QTreeWidgetItem):
             if name in names_toplevel_local:
                 index_child = names_toplevel_local.index(name)
                 status_item = self._children_statusitems[index_child]
-                status_item.update_children(child_diagnostic_status,
-                                            diag_array)
+                # Recursive call.
+                status_item.update_children(
+                                           child_diagnostic_status, diag_array)
                 Util.update_status_images(child_diagnostic_status, status_item)
                 rospy.logdebug(' StatusItem update 33 index= %d dev_name= %s',
                                index_child, device_name)
-                # status_item.setText(0, headline)
                 status_item.setText(0, device_name)
                 status_item.setText(1, child_diagnostic_status.message)
             elif len(self.strip_child(name).split('/')) <= 2:
                 status_item = StatusItem(child_diagnostic_status)
+                # Recursive call.
                 status_item.update_children(child_diagnostic_status,
-                                            diag_array)  # Recursive call.
-                # status_item.setText(0, headline)
+                                            diag_array)
                 status_item.setText(0, device_name)
                 status_item.setText(1, child_diagnostic_status.message)
                 self._children_statusitems.append(status_item)
-                # new_statusitems.append(status_item)
                 self.addChild(status_item)
 
         rospy.logdebug(' ------ Statusitem.update_children err=%d warn=%d',
                        errors, warnings)
-        return {Util.DICTKEY_TIMES_ERROR: errors,
-                Util.DICTKEY_TIMES_WARN: warnings}
+        return {Util._DICTKEY_TIMES_ERROR: errors,
+                Util._DICTKEY_TIMES_WARN: warnings}
 
     def on_click(self):
         if not self.inspector:
@@ -200,11 +203,9 @@ class InstantaneousState(object):
 
     def update(self, msg):
         """
-        Copied from robot_monitor.
 
         :type msg: DiagnosticArray
         """
-
         removed = []
         added = []
         items = {}

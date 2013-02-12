@@ -50,7 +50,7 @@ from .util_robot_monitor import Util
 class RobotMonitorWidget(AbstractStatusWidget):
     """
     NOTE: RobotMonitorWidget.shutdown function needs to be called
-          when the instance of this class terminates.
+    when the instance of this class terminates.
 
     RobotMonitorWidget itself doesn't store previous diagnostic states.
     It instead delegates that function to TimelinePane class.
@@ -63,28 +63,26 @@ class RobotMonitorWidget(AbstractStatusWidget):
 
     def __init__(self, context, topic):
         """
-        :param context: plugin context hook to enable adding widgets as a ROS_GUI pane, ''PluginContext''
-        :param topic: Diagnostic topic to subscribe to ''str''
+        :param context: plugin context hook to enable adding widgets as a
+                        ROS_GUI pane, 'PluginContext'
+        :param topic: Diagnostic topic to subscribe to 'str'
         """
 
         super(RobotMonitorWidget, self).__init__()
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_robot_monitor'), 'resource',
                                'rqt_robot_monitor_mainwidget.ui')
-        loadUi(ui_file, self, {'TimelinePane': TimelinePane})
+        loadUi(ui_file, self)
 
         obj_name = 'Robot Monitor'
         self.setObjectName(obj_name)
         self.setWindowTitle(obj_name)
 
-        self._toplv_statusitems = []  # StatusItem
+        self._toplevel_statitems = []  # StatusItem
         self._warn_statusitems = []  # StatusItem. Contains ALL DEGREES
                                 # (device top level, device' _sub) in parallel
         self._err_statusitems = []  # StatusItem
 
-        # This class contains 3 tree widgets.
-        # tree_all_devices is all device no matter what the status is.
-        # warn/err_flattree shows nodes only when status that fit exist.
         self.tree_all_devices.itemDoubleClicked.connect(self._tree_clicked)
         self.warn_flattree.itemDoubleClicked.connect(self._tree_clicked)
         self.err_flattree.itemDoubleClicked.connect(self._tree_clicked)
@@ -93,19 +91,23 @@ class RobotMonitorWidget(AbstractStatusWidget):
 
         self._sig_tree_nodes_updated.connect(self._tree_nodes_updated)
 
-        self.timeline_pane.set_timeline_data(Util.SECONDS_TIMELINE,
+        # TODO: Declaring timeline pane.
+        #      Needs to be stashed away into .ui file but so far failed.
+        self.timeline_pane = TimelinePane(self, Util.SECONDS_TIMELINE,
                                           self.get_color_for_value,
                                           self.on_pause)
+
+        self.vlayout_top.addWidget(self.timeline_pane)
+        self.timeline_pane.show()
 
         self._paused = False
         self._is_stale = False
         self._last_message_time = 0.0
 
         self._timer = QTimer()
+        # self._timer.timerEvent.connect(self._update_message_state)
         self._timer.timeout.connect(self._update_message_state)
         self._timer.start(1000)
-
-        self.num_diag_msg_received = 0  # For debug
 
         self._sub = rospy.Subscriber(
                                     topic,  # name of the topic
@@ -132,17 +134,14 @@ class RobotMonitorWidget(AbstractStatusWidget):
 
         :type msg: DiagnosticArray
         :param is_forced: Intended for non-incoming-msg trigger
-                          (in particular, from child object like TimelinePane).
+         (in particular, from child object like TimelinePane).
         @author: Isaac Saito
-        """
+         """
         if not self._paused and not is_forced:
             self.timeline_pane.new_diagnostic(msg)
-
             self._update_devices_tree(msg)
-            self._update_flat_tree(msg)
-
-            # timestamp the last msg arrival.
-            self._last_message_time = rospy.get_time()
+            self._update_warns_errors(msg)
+            self._on_new_message_received(msg)
 
             self._notify_statitems(msg)
 
@@ -150,35 +149,27 @@ class RobotMonitorWidget(AbstractStatusWidget):
                        msg.header.stamp)
         elif is_forced:
             self._update_devices_tree(msg)
-            self._update_flat_tree(msg)
-
-        self.num_diag_msg_received += 1
-        rospy.logdebug('  RobotMonitorWidget _cb #%d',
-                       self.num_diag_msg_received)
+            self._update_warns_errors(msg)
 
     def _notify_statitems(self, diag_arr):
         """
         Notify new message arrival to all existing InespectorWindow
         instances that are encapsulated in StatusItem instances contained
-        in self._toplv_statusitems.
+        in self._toplevel_statitems.
         """
 
         for statitem_new in diag_arr.status:
             corresp = Util.get_correspondent(statitem_new.name,
-                                             self._toplv_statusitems)
-            statitem_prev = corresp[Util.DICTKEY_STATITEM]
+                                             self._toplevel_statitems)
+            statitem_prev = corresp[Util._DICTKEY_STATITEM]
             if statitem_prev and statitem_prev.inspector:
                 rospy.logdebug('  RobotMonitorWidget _notify_statitems ' +
                                'name=%s len toplv items=%d',
-                               statitem_new.name, len(self._toplv_statusitems))
+                              statitem_new.name, len(self._toplevel_statitems))
                 return
 
     def resizeEvent(self, evt):
-        """
-        (Overridden from QWidget.)
-
-        Re-drawn timeline.
-        """
+        """Overridden from QWidget"""
         rospy.logdebug('RobotMonitorWidget resizeEvent')
         self.timeline_pane.redraw()
 
@@ -194,54 +185,53 @@ class RobotMonitorWidget(AbstractStatusWidget):
 
     def _update_devices_tree(self, diag_array):
         """
-        Update the tree that contains all statuses from all devices.
+        Update the tree from the bottom
 
         :type diag_array: DiagnosticArray
         """
-        # TODO(Isaac) 11/5/2012 Currently, in case some devices disappear
+        # TODO: 11/5/2012 Currently, in case some devices disappear
         #            while running this program, there's no way to remove
         #            those from the device-tree.
 
-        statusnames_curr_toplevel = [Util.get_grn_resource_name(k.name)
-                                     for k in self._toplv_statusitems]
-        # Only the k variable that pops up at the end is processed
-        # by Util.get_grn_resource_name.
+        statusnames_curr_toplevel = [Util.get_grn_resource_name(status.name)
+                                     for status in self._toplevel_statitems]
+        # Only the status variable that pops up at the end is
+        # processed by Util.get_grn_resource_name.
 
-        for diagnostic_status_new in (
-                    self._get_toplv_diagnosticstatus_from_new_msg(diag_array)):
-            name = Util.get_grn_resource_name(diagnostic_status_new.name)
+        for status_new in self._get_toplevel_diagnosticstat(diag_array):
+            name = Util.get_grn_resource_name(status_new.name)
             rospy.logdebug('_update_devices_tree 0 name @ toplevel %s', name)
             dict_status = 0
             if name in statusnames_curr_toplevel:  # No change of names
                                                 # in toplevel since last time.
-                statusitem = self._toplv_statusitems[
+                statusitem = self._toplevel_statitems[
                                         statusnames_curr_toplevel.index(name)]
 
-                dict_status = statusitem.update_children(diagnostic_status_new,
+                dict_status = statusitem.update_children(status_new,
                                                          diag_array)
-                times_errors = dict_status[Util.DICTKEY_TIMES_ERROR]
-                times_warnings = dict_status[Util.DICTKEY_TIMES_WARN]
-                Util.update_status_images(diagnostic_status_new, statusitem)
+                times_errors = dict_status[Util._DICTKEY_TIMES_ERROR]
+                times_warnings = dict_status[Util._DICTKEY_TIMES_WARN]
+                Util.update_status_images(status_new, statusitem)
 
-                #TODO(Isaac) Update status text on each node using dict_status.
+                # TODO: Update status text on each node using dict_status.
                 base_text = Util.gen_headline_status_green(statusitem.status)
 
-                rospy.logdebug('_update_devices_tree ' +
+                rospy.logdebug('_update_devices_tree warn_id= %s\n\t\t\t' +
                                'diagnostic_status.name = %s\n\t\t\t\t' +
                                'Normal status diag_array = %s',
-                               diagnostic_status_new.name, base_text)
+                               statusitem.warning_id,
+                               status_new.name, base_text)
 
                 if (times_errors > 0 or times_warnings > 0):
                     base_text = "(Err: %s, Wrn: %s) %s %s" % (
                                    times_errors,
                                    times_warnings,
-                                   Util.get_grn_resource_name(
-                                                  diagnostic_status_new.name),
-                                   diagnostic_status_new.message)
+                                   Util.get_grn_resource_name(status_new.name),
+                                   status_new.message)
                     rospy.logdebug('_update_dev_tree 1 text to show=%s',
                                    base_text)
                     statusitem.setText(0, base_text)
-                    statusitem.setText(1, diagnostic_status_new.message)
+                    statusitem.setText(1, status_new.message)
                 else:
                     rospy.logdebug('_update_dev_tree 2 text to show=%s',
                                    base_text)
@@ -249,36 +239,27 @@ class RobotMonitorWidget(AbstractStatusWidget):
                     statusitem.setText(1, 'OK')
 
             else:
-                # Create an instance for a category that will be shown at the
-                # top level of the tree.
-                new_status_item = StatusItem(diagnostic_status_new)
+                new_status_item = StatusItem(status_new)
 
-                # Reflect the statuses of all devices under the category.
-                new_status_item.update_children(diagnostic_status_new,
+                new_status_item.update_children(status_new,
                                                 diag_array)
 
                 # Figure out if a statusitem and its subtree contains errors.
                 # new_status_item.setIcon(0, self._error_icon)
                 # This shows NG icon at the beginning of each statusitem.
-                Util.update_status_images(diagnostic_status_new,
-                                          new_status_item)
+                Util.update_status_images(status_new,
+                                           new_status_item)
 
-                # Add to list of top level items of the tree.
-                self._toplv_statusitems.append(new_status_item)
+                self._toplevel_statitems.append(new_status_item)
 
                 rospy.logdebug(' _update_devices_tree 2 ' +
-                               'diagnostic_status_new.name %s',
+                               'status_new.name %s',
                                new_status_item.name)
-                # Add to the treewidget.
                 self.tree_all_devices.addTopLevelItem(new_status_item)
 
-        # Notify to refresh tree's appearance (currently resizes column size).
         self._sig_tree_nodes_updated.emit(self._TREE_ALL)
 
     def _tree_nodes_updated(self, tree_type):
-        """
-        Do tasks to update the tree that corresponds to the given tree_type.
-        """
         tree_obj = None
         if self._TREE_ALL == tree_type:
             tree_obj = self.tree_all_devices
@@ -286,17 +267,10 @@ class RobotMonitorWidget(AbstractStatusWidget):
             tree_obj = self.warn_flattree
         if self._TREE_ERR == tree_type:
             tree_obj = self.err_flattree
-
-        # Without calling resizeColumnToContents(0), columns of trees don't
-        # expand to adjust the width.
-        #
-        # Resizing should happen each time tree contents get updated, in order
-        # to adjust the width to the maximum length.
         tree_obj.resizeColumnToContents(0)
 
-    def _get_toplv_diagnosticstatus_from_new_msg(self, diag_array):
+    def _get_toplevel_diagnosticstat(self, diag_array):
         """
-
         Return an array that contains DiagnosticStatus only at the top level of
         the given msg.
 
@@ -307,13 +281,27 @@ class RobotMonitorWidget(AbstractStatusWidget):
         ret = []
         for diagnostic_status in diag_array.status:
             if len(diagnostic_status.name.split('/')) == 2:
-                rospy.logdebug(" _get_toplv_diagnosticstatus_from_new_msg " +
+                rospy.logdebug(" _get_toplevel_diagnosticstat " +
                 "TOP lev %s ", diagnostic_status.name)
                 ret.append(diagnostic_status)
             else:
-                rospy.logdebug(" _get_toplv_diagnosticstatus_from_new_msg " +
+                rospy.logdebug(" _get_toplevel_diagnosticstat " +
                                "Not top lev %s ", diagnostic_status.name)
         return ret
+
+    def _update_warns_errors(self, diag_array):
+        """
+        Update the warning and error trees.
+
+        Unlike _update_devices_tree function where all DiagnosticStatus
+        need to be inspected constantly, this function is used in a trial
+        to reduce unnecessary inspection of the status level for all
+        DiagnosticStatus contained in the incoming DiagnosticArray msg.
+
+        :type msg: DiagnosticArray
+        """
+
+        self._update_flat_tree(diag_array)
 
     def pause(self, msg):
         """
@@ -321,6 +309,7 @@ class RobotMonitorWidget(AbstractStatusWidget):
 
         :type msg: DiagnosticArray
         """
+
         if not self._paused:
             self._paused = True
             self.new_diagnostic(msg)
@@ -329,6 +318,7 @@ class RobotMonitorWidget(AbstractStatusWidget):
         """
         :type msg: DiagnosticArray
         """
+
         self._paused = False
 
     def on_pause(self, paused, diagnostic_arr):
@@ -343,7 +333,7 @@ class RobotMonitorWidget(AbstractStatusWidget):
 
         if paused:
             self.pause(diagnostic_arr)
-        elif (len(self._toplv_statusitems) > 0):
+        elif (len(self._toplevel_statitems) > 0):
             diag_array_queue = self.timeline_pane._get_diagnosticarray()
             statitems = []
             for diag_arr in diag_array_queue:
@@ -351,23 +341,24 @@ class RobotMonitorWidget(AbstractStatusWidget):
                 state_instant.update(diag_arr)
                 statitems.append(state_instant)
 
-        for statitem_toplv in self._toplv_statusitems:
+        for statitem_toplv in self._toplevel_statitems:
             if (paused):
                 statitem_toplv.disable()
             else:
                 statitem_toplv.enable()
                 for state_instant in statitems:
-                    all_states = state_instant.get_items()
-                    if statitem_toplv.get_name() in all_states:
+                    items = state_instant.get_items()
+                    if statitem_toplv.get_name() in items:
                         statitem_toplv.update(
-                                all_states[statitem_toplv.get_name()].status)
+                                       items[statitem_toplv.get_name()].status)
 
     def _update_flat_tree(self, diag_arr):
         """
         Update the given flat tree (ie. tree that doesn't show children nodes -
-        all of its elements will be shown on top level) with all the
-        DiagnosticStatus instances contained in the given DiagnosticArray,
-        regardless of the level of the device in a device category.
+        all of its elements will be shown on top level) with
+        all the DiagnosticStatus instances contained in the given
+        DiagnosticArray, regardless of the level of the device in a device
+        category.
 
         For both warn / error trees, StatusItem instances are newly generated.
 
@@ -380,41 +371,31 @@ class RobotMonitorWidget(AbstractStatusWidget):
 
             stat_lv_new = diag_stat_new.level
             dev_name = diag_stat_new.name
-
-            # Retrieve previous statusitem instance as dict that matches the
-            # key.
             correspondent_warn_curr = Util.get_correspondent(
                                          Util.get_grn_resource_name(dev_name),
                                          self._warn_statusitems)
+            dev_index_warn_curr = correspondent_warn_curr[Util._DICTKEY_INDEX]
+            rospy.logdebug(' dev_index_warn_curr=%s dev_name=%s',
+                           dev_index_warn_curr, dev_name)
             correspondent_err_curr = Util.get_correspondent(
-                                         Util.get_grn_resource_name(dev_name),
-                                         self._err_statusitems)
-
-            # Get index number of the corresponding statusitem instance.
-            dev_index_warn_curr = correspondent_warn_curr[Util.DICTKEY_INDEX]
-            dev_index_err_curr = correspondent_err_curr[Util.DICTKEY_INDEX]
-
-            # headline is supposed be shown on each category.
+                                          Util.get_grn_resource_name(dev_name),
+                                          self._err_statusitems)
+            dev_index_err_curr = correspondent_err_curr[Util._DICTKEY_INDEX]
             headline = "%s" % diag_stat_new.name
-
-            # If the new status is "OK"
             if DiagnosticStatus.OK == stat_lv_new:
-                # if the index of WARN is positive number.
                 if 0 <= dev_index_warn_curr:
-                    rospy.logdebug('dev_index_warn_curr=%s dev_name=%s, ' +
-                                   'stat_lv_new=%d',
-                                   dev_index_warn_curr, dev_name, stat_lv_new)
-                    # Get the corresponding statusitem from the list of current
-                    # WARN statusitems. The copy of the eturned statusitems
-                    # still stays in the given list.
-                    self._get_statitem(dev_index_warn_curr,
+                    rospy.logdebug('dev_index_warn_curr=%s name=%s, ' +
+                                   'stat_lv_new=%d', dev_index_warn_curr,
+                                   dev_name, stat_lv_new)
+                    statitem_curr = self._get_statitem(dev_index_warn_curr,
                                                        self._warn_statusitems,
                                                        self.warn_flattree, 1)
+                    statitem_curr.warning_id = None
                 elif 0 <= dev_index_err_curr:
-                    self._get_statitem(dev_index_err_curr,
+                    statitem_curr = self._get_statitem(dev_index_err_curr,
                                                        self._err_statusitems,
                                                        self.err_flattree, 1)
-
+                    statitem_curr.error_id = None
             elif DiagnosticStatus.WARN == stat_lv_new:
                 statitem = None
                 if 0 <= dev_index_err_curr:
@@ -439,13 +420,11 @@ class RobotMonitorWidget(AbstractStatusWidget):
                     # obtain the instance.
                     statitem = self._get_statitem(dev_index_warn_curr,
                                                   self._warn_statusitems)
-                    # Returned statitem instance will be garbage collected.
 
-                #TODO For statitem that is popped and to be dimished, this
-                # following step shouldn't be taken.
-                if statitem:
+                if statitem:  # If not None
                     # Updating statusitem will keep popup window also update.
-                    statitem.update_children(diag_stat_new, diag_arr)
+                    statitem.update_children(diag_stat_new,
+                                                           diag_arr)
             elif ((DiagnosticStatus.ERROR == stat_lv_new) or
                   (DiagnosticStatus.STALE == stat_lv_new)):
                 statitem = None
@@ -470,15 +449,18 @@ class RobotMonitorWidget(AbstractStatusWidget):
                     self._add_statitem(statitem, self._err_statusitems,
                                       self.err_flattree, headline,
                                       diag_stat_new.message, stat_lv_new)
+
                 if statitem:  # If not None
                     # Updating statusitem will keep popup window also update.
-                    statitem.update_children(diag_stat_new, diag_arr)
+                    statitem.update_children(diag_stat_new,
+                                                           diag_arr)
 
         self._sig_tree_nodes_updated.emit(self._TREE_WARN)
         self._sig_tree_nodes_updated.emit(self._TREE_ERR)
 
     def _add_statitem(self, statusitem, statitem_list,
                       tree, headline, statusmsg, statlevel):
+
         if 'Warning' == statusmsg or 'Error' == statusmsg:
             return
 
@@ -492,10 +474,6 @@ class RobotMonitorWidget(AbstractStatusWidget):
 
     def _get_statitem(self, item_index, item_list, tree=None, mode=2):
         """
-        Return the item at the corresponding index in the given tree. If mode
-        is set appropriately, the item is also removed.
-
-        :type item_list: StatusItem[]
         :param mode: 1 = remove from given list, 2 = w/o removing.
         """
         statitem_existing = item_list[item_index]
@@ -504,11 +482,17 @@ class RobotMonitorWidget(AbstractStatusWidget):
             item_list.pop(item_index)
         return statitem_existing
 
+    def _on_new_message_received(self, msg):
+        """
+        Called whenever a new message is received by the timeline.
+        Different from new_message in that it is called even if the timeline is
+        _paused, and only when a new message is received, not when the timeline
+        is scrubbed
+        """
+        self._last_message_time = rospy.get_time()
+
     def _update_message_state(self):
-        """
-        Update the timer counts for the timeline that shows 'last msg was
-        received ### secs ago'.
-        """
+
         current_time = rospy.get_time()
         time_diff = current_time - self._last_message_time
         rospy.logdebug('_update_message_state time_diff= %s ' +
@@ -530,11 +514,9 @@ class RobotMonitorWidget(AbstractStatusWidget):
 
     def shutdown(self):
         """
+        This needs to be called whenever this class terminates.
         This closes all the instances on all trees.
         Also unregisters ROS' subscriber, stops timer.
-        Forgetting to call this method whenever this class terminates might
-        lead to processes to unexpectedly remain, which could be particularly
-        non-trivial when rqt_gui still is running.
         """
 
         rospy.logdebug('RobotMonitorWidget in shutdown')
@@ -545,7 +527,7 @@ class RobotMonitorWidget(AbstractStatusWidget):
             item.close()
         for item in self._warn_statusitems:
             item.close()
-        for item in self._toplv_statusitems:
+        for item in self._toplevel_statitems:
             item.close()
 
         self._sub.unregister()
@@ -554,9 +536,6 @@ class RobotMonitorWidget(AbstractStatusWidget):
         del self._timer
 
     def save_settings(self, plugin_settings, instance_settings):
-        """
-        Saves the last status of splitter between status trees.
-        """
         instance_settings.set_value('splitter', self.splitter.saveState())
 
     def restore_settings(self, plugin_settings, instance_settings):
@@ -581,7 +560,8 @@ class RobotMonitorWidget(AbstractStatusWidget):
         rospy.logdebug(' get_color_for_value color_index=%d len_q=%d',
                       color_index, len_q)
         if (color_index == 1 and len_q == 0):
+            # TODO: Needs to be reverted back
             return QColor('grey')
-        return Util.get_color_for_message(queue_diagnostic[color_index - 1])
-                                # When _queue_diagnostic is empty,
-                                # this yield error when color_index > 0.
+        return Util._get_color_for_message(queue_diagnostic[color_index - 1])
+        # When _queue_diagnostic is empty,
+        # this yield error when color_index > 0.

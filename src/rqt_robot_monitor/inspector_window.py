@@ -32,15 +32,14 @@
 #
 # Author: Isaac Saito, Ze'ev Klapow
 
-import rospy
-
 from python_qt_binding.QtCore import Signal
 from python_qt_binding.QtGui import QPushButton, QTextEdit, QVBoxLayout
+import rospy
 
-from .abst_status_widget import AbstractStatusWidget
-from .status_snapshot import StatusSnapshot
-from .time_pane import TimelinePane
-from .util_robot_monitor import Util
+from rqt_robot_monitor.abst_status_widget import AbstractStatusWidget
+from rqt_robot_monitor.status_snapshot import StatusSnapshot
+from rqt_robot_monitor.time_pane import TimelinePane
+from rqt_robot_monitor.util_robot_monitor import Util
 
 
 class InspectorWindow(AbstractStatusWidget):
