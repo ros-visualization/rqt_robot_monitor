@@ -74,7 +74,7 @@ class TimelinePane(QWidget):
             rp = rospkg.RosPack()
             ui_file = os.path.join(rp.get_path('rqt_robot_monitor'),
                                    'resource',
-                                   'rqt_robot_monitor_timelinepane.ui')
+                                   'timelinepane.ui')
             loadUi(ui_file, self, {'TimelineView': TimelineView})
 
             self._pause_callback = pause_callback

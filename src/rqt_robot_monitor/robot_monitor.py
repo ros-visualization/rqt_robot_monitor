@@ -72,8 +72,9 @@ class RobotMonitorWidget(AbstractStatusWidget):
         super(RobotMonitorWidget, self).__init__()
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_robot_monitor'), 'resource',
-                               'rqt_robot_monitor_mainwidget.ui')
+                               'robotmonitor_mainwidget.ui')
         loadUi(ui_file, self, {'TimelinePane': TimelinePane})
+        #loadUi(ui_file, self)
 
         obj_name = 'Robot Monitor'
         self.setObjectName(obj_name)
