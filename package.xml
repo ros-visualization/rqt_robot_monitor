@@ -1,6 +1,6 @@
 <package>
   <name>rqt_robot_monitor</name>
-  <version>0.2.8</version>
+  <version>0.2.9</version>
   <description>rqt_robot_monitor displays diagnostics_agg topic messages.
   
   All diagnostics are fall into one of three tree panes depending on the 
