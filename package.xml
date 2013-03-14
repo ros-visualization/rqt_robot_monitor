@@ -15,7 +15,7 @@
    
   Currently re-usable functionalities to other pkgs are not provided.   
   </description>
-  <maintainer email="isaito@willowgarage.com">Isaac Saito</maintainer>
+  <maintainer email="130s@alumni.smu.edu">Isaac Saito</maintainer>
 
   <license>BSD</license>
 
@@ -23,7 +23,7 @@
   <url type="repository">https://github.com/ros-visualization/rqt_robot_plugins/rqt_robot_monitor</url>
   <url type="bugtracker">https://github.com/ros-visualization/rqt_robot_plugins/issues</url>
 
-  <author>Isaac Saito</author>
+  <author email="isaito@willowgarage.com">Isaac Saito</author>
   <author>Ze'ev Klapow</author>
 
   <buildtool_depend>catkin</buildtool_depend>
