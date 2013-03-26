@@ -53,10 +53,12 @@ class TimelinePane(QWidget):
 
     sig_update = Signal()
 
-    def __init__(self, parent, len_timeline=None):
-                 #color_callback=None,
-                 #pause_callback=None):
+    def __init__(self, parent):
         """
+        Because this class is intended to be instantiated via Qt's .ui file,
+        taking argument other than parent widget is not possible, which is
+        ported to set_timeline_data method. That said, set_timeline_data must
+        be called (soon) after an object of this is instantiated.
 
         :param color_callback: Not directly used within this class. Instead,
         this will be passed and used in TimelineView class.
