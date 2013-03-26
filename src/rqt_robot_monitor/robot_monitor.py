@@ -85,6 +85,12 @@ class RobotMonitorWidget(AbstractStatusWidget):
                                 # (device top level, device' _sub) in parallel
         self._err_statusitems = []  # StatusItem
 
+        # TODO: Declaring timeline pane.
+        #      Needs to be stashed away into .ui file but so far failed.
+        self.timeline_pane.set_timeline_data(Util.SECONDS_TIMELINE,
+                                             self.get_color_for_value,
+                                             self.on_pause)
+
         self.tree_all_devices.itemDoubleClicked.connect(self._tree_clicked)
         self.warn_flattree.itemDoubleClicked.connect(self._tree_clicked)
         self.err_flattree.itemDoubleClicked.connect(self._tree_clicked)
@@ -92,12 +98,6 @@ class RobotMonitorWidget(AbstractStatusWidget):
         self.tree_all_devices.resizeColumnToContents(0)
 
         self._sig_tree_nodes_updated.connect(self._tree_nodes_updated)
-
-        # TODO: Declaring timeline pane.
-        #      Needs to be stashed away into .ui file but so far failed.
-        self.timeline_pane.set_timeline_data(Util.SECONDS_TIMELINE,
-                                          self.get_color_for_value,
-                                          self.on_pause)
 
         self.vlayout_top.addWidget(self.timeline_pane)
         self.timeline_pane.show()

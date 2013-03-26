@@ -53,9 +53,9 @@ class TimelinePane(QWidget):
 
     sig_update = Signal()
 
-    def __init__(self, parent, len_timeline=None,
-                 color_callback=None,
-                 pause_callback=None):
+    def __init__(self, parent, len_timeline=None):
+                 #color_callback=None,
+                 #pause_callback=None):
         """
 
         :param color_callback: Not directly used within this class. Instead,
