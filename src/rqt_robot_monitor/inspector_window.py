@@ -140,6 +140,7 @@ class InspectorWindow(AbstractStatusWidget):
         """
 
         if not self.paused or (self.paused and is_forced):
+            scroll_value = self.disp.verticalScrollBar().value()
             self.timeline_pane.new_diagnostic(status)
 
             rospy.logdebug('InspectorWin update_status_display 1')
@@ -155,6 +156,9 @@ class InspectorWindow(AbstractStatusWidget):
 
             for v in status.values:
                 self._sig_write.emit(v.key, v.value)
+            if self.disp.verticalScrollBar().maximum() < scroll_value:
+                scroll_value = self.disp.verticalScrollBar().maximum()
+            self.disp.verticalScrollBar().setValue(scroll_value)
 
     def _take_snapshot(self):
         snap = StatusSnapshot(self.status)
