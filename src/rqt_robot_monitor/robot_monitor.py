@@ -37,8 +37,8 @@ import rospkg
 
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import QTimer, Signal
-from python_qt_binding.QtGui import QColor
+from python_qt_binding.QtCore import QTimer, Signal, Qt
+from python_qt_binding.QtGui import QColor, QPalette
 import rospy
 
 from .abst_status_widget import AbstractStatusWidget
@@ -103,7 +103,7 @@ class RobotMonitorWidget(AbstractStatusWidget):
         self.timeline_pane.show()
 
         self._paused = False
-        self._is_stale = False
+        self._is_stale = None
         self._last_message_time = 0.0
 
         self._timer = QTimer()
@@ -117,6 +117,8 @@ class RobotMonitorWidget(AbstractStatusWidget):
                                     self._cb)
 
         self._sig_new_diagnostic.connect(self.new_diagnostic)
+        self._original_base_color = self.tree_all_devices.palette().base().color()
+        self._original_alt_base_color = self.tree_all_devices.palette().alternateBase().color()
 
     def _cb(self, msg):
         """
@@ -505,6 +507,8 @@ class RobotMonitorWidget(AbstractStatusWidget):
         rospy.logdebug('_update_message_state time_diff= %s ' +
                        'self._last_message_time=%s', time_diff,
                        self._last_message_time)
+
+        previous_stale_state = self._is_stale
         if (time_diff > 10.0):
             self.timeline_pane._msg_label.setText("Last message received " +
                                                "%s seconds ago"
@@ -518,6 +522,20 @@ class RobotMonitorWidget(AbstractStatusWidget):
                  "Last message received %s %s ago" % (int(time_diff),
                                                       seconds_string))
             self._is_stale = False
+        if previous_stale_state != self._is_stale:
+            self._update_background_color()
+
+    def _update_background_color(self):
+        p = self.tree_all_devices.palette()
+        if self._is_stale:
+            p.setColor(QPalette.Base, Qt.darkGray)
+            p.setColor(QPalette.AlternateBase, Qt.lightGray)
+        else:
+            p.setColor(QPalette.Base, self._original_base_color)
+            p.setColor(QPalette.AlternateBase, self._original_alt_base_color)
+        self.tree_all_devices.setPalette(p)
+        self.warn_flattree.setPalette(p)
+        self.err_flattree.setPalette(p)
 
     def shutdown(self):
         """
