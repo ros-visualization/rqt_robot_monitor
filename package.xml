@@ -11,9 +11,9 @@
    <ul>
     Ex. 'Computer' category has 3 sub devices. 2 are green but 1 is error. Then
         'Computer' becomes error.
-   </ul>   
+   </ul>
   You can look at the detail of each status by double-clicking the tree nodes.<br />
-   
+
   Currently re-usable API to other pkgs are not explicitly provided.
   </description>
   <maintainer email="130s@alumni.smu.edu">Isaac Saito</maintainer>
@@ -24,10 +24,10 @@
   <url type="repository">https://github.com/ros-visualization/rqt_robot_plugins/rqt_robot_monitor</url>
   <url type="bugtracker">https://github.com/ros-visualization/rqt_robot_plugins/issues</url>
 
-  <author email="isaito@willowgarage.com">Isaac Saito</author>
+  <author>Isaac Saito</author>
   <author>Ze'ev Klapow</author>
-  <author email="watts@willowgarage.com">Kevin Watts</author>
-  <author email="jfaust@willowgarage.com">Josh Faust</author>
+  <author>Kevin Watts</author>
+  <author>Josh Faust</author>
 
   <buildtool_depend>catkin</buildtool_depend>
 
