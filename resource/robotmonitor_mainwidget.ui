@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>RobotMonitorWidget</class>
- <widget class="AbstractStatusWidget" name="RobotMonitorWidget">
+ <widget class="RobotMonitorWidget" name="RobotMonitorWidget">
   <property name="minimumSize">
    <size>
     <width>200</width>
@@ -119,14 +119,14 @@
  </widget>
 <customwidgets>
   <customwidget>
-   <class>AbstractStatusWidget</class>
+   <class>RobotMonitorWidget</class>
    <extends>QWidget</extends>
-   <header>rqt_robot_monitor.abst_status_widget</header>
+   <header>rqt_robot_monitor.robot_monitor</header>
   </customwidget>
   <customwidget>
    <class>TimelinePane</class>
    <extends>QWidget</extends>
-   <header>rqt_robot_monitor.time_pane</header>
+   <header>rqt_robot_monitor.timeline_pane</header>
   </customwidget>
  </customwidgets>
  <resources/>

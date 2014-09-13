@@ -151,7 +151,7 @@
   <customwidget>
    <class>TimelineView</class>
    <extends>QGraphicsView</extends>
-   <header>rqt_robot_monitor.timeline</header>
+   <header>rqt_robot_monitor.timeline_view</header>
   </customwidget>
  </customwidgets>
  <resources/>

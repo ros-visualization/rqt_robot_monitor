@@ -30,10 +30,9 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# Author: Isaac Saito, Ze'ev Klapow
+# Author: Isaac Saito, Ze'ev Klapow, Austin Hendrix
 
 from qt_gui.plugin import Plugin
-import rospy
 
 from .robot_monitor import RobotMonitorWidget
 
@@ -44,7 +43,7 @@ class RobotMonitorPlugin(Plugin):
         :type context: qt_gui.PluginContext
         """
         super(RobotMonitorPlugin, self).__init__(context)
-        self._robot_monitor = RobotMonitorWidget(context, '/diagnostics_agg')
+        self._robot_monitor = RobotMonitorWidget(context, 'diagnostics_agg')
         if context.serial_number() > 1:
             self._robot_monitor.setWindowTitle(
                  self._robot_monitor.windowTitle() +
@@ -58,7 +57,6 @@ class RobotMonitorPlugin(Plugin):
 
         Overriding Plugin's method.
         """
-        rospy.logdebug('In RobotMonitorPlugin shutdown_plugin')
         self._robot_monitor.shutdown()  # Closes unclosed popup windows.
 
     def save_settings(self, plugin_settings, instance_settings):

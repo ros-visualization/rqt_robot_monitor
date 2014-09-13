@@ -30,33 +30,48 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# Author: Isaac Saito, Ze'ev Klapow
+# Author: Isaac Saito, Ze'ev Klapow, Austin Hendrix
+#
+# TODO(ahendrix):
+#   better formatting of key-value pairs in a table
 
 from python_qt_binding.QtGui import QTextEdit
+from python_qt_binding.QtCore import Signal
 
+from diagnostic_msgs.msg import DiagnosticStatus
+from util_robot_monitor import level_to_text
 
 class StatusSnapshot(QTextEdit):
     """Display a single static status message. Helps facilitate copy/paste"""
+    write_status = Signal(DiagnosticStatus)
 
-    def __init__(self, status):
+    def __init__(self, status=None, parent=None):
         super(StatusSnapshot, self).__init__()
 
+        self.write_status.connect(self._write_status)
+        if status is not None:
+            self.write_status.emit(status)
+
+            self.resize(300, 400)
+            self.show()
+
+    def _write_status(self, status):
+        self.clear()
         self._write("Full Name", status.name)
         self._write("Component", status.name.split('/')[-1])
         self._write("Hardware ID", status.hardware_id)
-        self._write("Level", status.level)
+        self._write("Level", level_to_text(status.level))
         self._write("Message", status.message)
         self.insertPlainText('\n')
 
         for value in status.values:
             self._write(value.key, value.value)
 
-        self.setGeometry(0, 0, 300, 400)
-        self.show()
-
     def _write(self, k, v):
+        # TODO(ahendrix): write these as a table rather than as text
         self.setFontWeight(75)
         self.insertPlainText(str(k))
+        # TODO(ahendrix): de-dupe trailing ':' here
         self.insertPlainText(': ')
 
         self.setFontWeight(50)
