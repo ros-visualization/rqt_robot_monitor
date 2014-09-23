@@ -184,6 +184,7 @@ class RobotMonitorWidget(QWidget):
             self._inspectors[item.name] = InspectorWindow(self, item.name,
                     self._current_msg, self._timeline)
             self._inspectors[item.name].closed.connect(self._inspector_closed)
+            self.message_updated.connect(self._inspectors[item.name].message_updated)
 
     def _update_message_state(self):
         """ Update the display if it's stale """
