@@ -16,7 +16,7 @@
 
   Currently re-usable API to other pkgs are not explicitly provided.
   </description>
-  <maintainer email="130s@alumni.smu.edu">Isaac Saito</maintainer>
+  <maintainer email="namniart@gmail.com">Austin Hendrix</maintainer>
 
   <license>BSD</license>
 
@@ -24,6 +24,7 @@
   <url type="repository">https://github.com/ros-visualization/rqt_robot_plugins/rqt_robot_monitor</url>
   <url type="bugtracker">https://github.com/ros-visualization/rqt_robot_plugins/issues</url>
 
+  <author>Austin Hendrix</author>
   <author>Isaac Saito</author>
   <author>Ze'ev Klapow</author>
   <author>Kevin Watts</author>
