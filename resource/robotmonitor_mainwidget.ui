@@ -112,9 +112,6 @@
      </widget>
     </widget>
    </item>
-   <item>
-    <widget class="TimelinePane" name="timeline_pane" />
-   </item>
   </layout>
  </widget>
 <customwidgets>

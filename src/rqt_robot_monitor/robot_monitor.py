@@ -79,12 +79,17 @@ class RobotMonitorWidget(QWidget):
         self.setObjectName(obj_name)
         self.setWindowTitle(obj_name)
 
+        self.message_updated.connect(self.message_cb)
+
         # if we're given a topic, create a timeline. otherwise, don't
         #  this can be used later when writing an rqt_bag plugin
         if topic:
+            # create timeline data structure
             self._timeline = Timeline(topic, DiagnosticArray)
             self._timeline.message_updated.connect(self.message_updated)
-            self._timeline.message_updated.connect(self.message_cb)
+
+            # create timeline pane widget
+            self.timeline_pane = TimelinePane(self)
 
             self.timeline_pane.set_timeline(self._timeline)
 
@@ -92,6 +97,7 @@ class RobotMonitorWidget(QWidget):
             self.timeline_pane.show()
         else:
             self._timeline = None
+            self.timeline_pane = None
 
         self._inspectors = {}
         # keep a copy of the current message for opening new inspectors
@@ -162,7 +168,8 @@ class RobotMonitorWidget(QWidget):
     def resizeEvent(self, evt):
         """Overridden from QWidget"""
         rospy.logdebug('RobotMonitorWidget resizeEvent')
-        self.timeline_pane.redraw()
+        if self.timeline_pane:
+            self.timeline_pane.redraw()
 
     @Slot(str)
     def _inspector_closed(self, name):
@@ -232,7 +239,8 @@ class RobotMonitorWidget(QWidget):
         for name in names:
             self._inspectors[name].close()
 
-        self._timeline.shutdown()
+        if self._timeline:
+            self._timeline.shutdown()
 
         self._timer.stop()
         del self._timer
