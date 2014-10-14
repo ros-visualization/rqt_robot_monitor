@@ -30,25 +30,23 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# Author: Isaac Saito, Ze'ev Klapow
+# Author: Isaac Saito, Ze'ev Klapow, Austin Hendrix
 
-from python_qt_binding.QtCore import Signal
-from python_qt_binding.QtGui import QPushButton, QTextEdit, QVBoxLayout
+from python_qt_binding.QtCore import Signal, Slot
+from python_qt_binding.QtGui import QPushButton, QTextEdit, QVBoxLayout, QWidget
 import rospy
 
-from rqt_robot_monitor.abst_status_widget import AbstractStatusWidget
-from rqt_robot_monitor.status_snapshot import StatusSnapshot
-from rqt_robot_monitor.time_pane import TimelinePane
-from rqt_robot_monitor.util_robot_monitor import Util
+from .status_snapshot import StatusSnapshot, level_to_text
+from .timeline_pane import TimelinePane
+import util_robot_monitor as util
+
+from diagnostic_msgs.msg import DiagnosticArray
 
 
-class InspectorWindow(AbstractStatusWidget):
-    _sig_write = Signal(str, str)
-    _sig_newline = Signal()
-    _sig_close_window = Signal()
-    _sig_clear = Signal()
+class InspectorWindow(QWidget):
+    closed = Signal(str)
 
-    def __init__(self, status, close_callback):
+    def __init__(self, parent, name, status, timeline):
         """
         :type status: DiagnosticStatus
         :param close_callback: When the instance of this class
@@ -59,120 +57,58 @@ class InspectorWindow(AbstractStatusWidget):
         #            needs to be done in .ui file.
 
         super(InspectorWindow, self).__init__()
-        self.status = status
-        self._close_callback = close_callback
-        self.setWindowTitle(status.name)
-        self.paused = False
+        self.setWindowTitle(name)
+        self._name = name
 
         self.layout_vertical = QVBoxLayout(self)
 
-        self.disp = QTextEdit(self)
-        self.snapshot = QPushButton("StatusSnapshot")
-
-        self.timeline_pane = TimelinePane(self)
-        self.timeline_pane.set_timeline_data(Util.SECONDS_TIMELINE,
-                                             self.get_color_for_value,
-                                             self.on_pause)
+        self.disp = StatusSnapshot(parent=self)
 
         self.layout_vertical.addWidget(self.disp, 1)
-        self.layout_vertical.addWidget(self.timeline_pane, 0)
-        self.layout_vertical.addWidget(self.snapshot)
+
+        if timeline is not None:
+            self.timeline_pane = TimelinePane(self)
+            self.timeline_pane.set_timeline(timeline, name)
+            self.layout_vertical.addWidget(self.timeline_pane, 0)
+
+            self.snapshot = QPushButton("Snapshot")
+            self.snapshot.clicked.connect(self._take_snapshot)
+            self.layout_vertical.addWidget(self.snapshot)
 
         self.snaps = []
-        self.snapshot.clicked.connect(self._take_snapshot)
-
-        self._sig_write.connect(self._write_key_val)
-        self._sig_newline.connect(lambda: self.disp.insertPlainText('\n'))
-        self._sig_clear.connect(lambda: self.disp.clear())
-        self._sig_close_window.connect(self._close_callback)
 
         self.setLayout(self.layout_vertical)
         # TODO better to be configurable where to appear.
-        self.setGeometry(0, 0, 400, 600)
+        self.resize(400, 600)
         self.show()
-        self.update_status_display(status)
+        self.message_updated(status)
 
     def closeEvent(self, event):
-        # emit signal that should be slotted by StatusItem
-        self._sig_close_window.emit()
-        self.close()
+        """ called when this window is closed
 
-    def _write_key_val(self, k, v):
-        self.disp.setFontWeight(75)
-        self.disp.insertPlainText(k)
-        self.disp.insertPlainText(': ')
-
-        self.disp.setFontWeight(50)
-        self.disp.insertPlainText(v)
-        self.disp.insertPlainText('\n')
-
-    def pause(self, msg):
-        rospy.logdebug('InspectorWin pause PAUSED')
-        self.paused = True
-        self.update_status_display(msg)
-
-    def unpause(self, msg):
-        rospy.logdebug('InspectorWin pause UN-PAUSED')
-        self.paused = False
-
-    def new_diagnostic(self, msg, is_forced=False):
+        Calls close on all snapshots, and emits the closed signal
         """
-        Overridden from AbstractStatusWidget
+        # TODO: are snapshots kept around even after they're closed?
+        #       this appears to work even if the user closes some snapshots,
+        #       and they're still left in the internal array
+        for snap in self.snaps:
+            snap.close()
+        self.closed.emit(self._name)
 
-        :type status: DiagnosticsStatus
-        """
+    @Slot(DiagnosticArray)
+    def message_updated(self, msg):
+        status = util.get_status_by_name(msg, self._name)
+        scroll_value = self.disp.verticalScrollBar().value()
 
-        if not self.paused:
-            self.update_status_display(msg)
-            rospy.logdebug('InspectorWin _cb len of queue=%d self.paused=%s',
-                          len(self.timeline_pane._queue_diagnostic),
-                          self.paused)
-        else:
-            if is_forced:
-                self.update_status_display(msg, True)
-                rospy.logdebug('@@@InspectorWin _cb PAUSED window updated')
-            else:
-                rospy.logdebug('@@@InspectorWin _cb PAUSED not updated')
+        rospy.logdebug('InspectorWin message_updated')
 
-    def update_status_display(self, status, is_forced=False):
-        """
-        :type status: DiagnosticsStatus
-        """
+        self.status = status
+        self.disp.write_status.emit(status)
 
-        if not self.paused or (self.paused and is_forced):
-            scroll_value = self.disp.verticalScrollBar().value()
-            self.timeline_pane.new_diagnostic(status)
-
-            rospy.logdebug('InspectorWin update_status_display 1')
-
-            self.status = status
-            self._sig_clear.emit()
-            self._sig_write.emit("Full Name", status.name)
-            self._sig_write.emit("Component", status.name.split('/')[-1])
-            self._sig_write.emit("Hardware ID", status.hardware_id)
-            self._sig_write.emit("Level", str(status.level))
-            self._sig_write.emit("Message", status.message)
-            self._sig_newline.emit()
-
-            for v in status.values:
-                self._sig_write.emit(v.key, v.value)
-            if self.disp.verticalScrollBar().maximum() < scroll_value:
-                scroll_value = self.disp.verticalScrollBar().maximum()
-            self.disp.verticalScrollBar().setValue(scroll_value)
+        if self.disp.verticalScrollBar().maximum() < scroll_value:
+            scroll_value = self.disp.verticalScrollBar().maximum()
+        self.disp.verticalScrollBar().setValue(scroll_value)
 
     def _take_snapshot(self):
-        snap = StatusSnapshot(self.status)
+        snap = StatusSnapshot(status=self.status)
         self.snaps.append(snap)
-
-    def get_color_for_value(self, queue_diagnostic, color_index):
-        """
-        Overridden from AbstractStatusWidget.
-
-        :type color_index: int
-        """
-
-        rospy.logdebug('InspectorWindow get_color_for_value ' +
-                       'queue_diagnostic=%d, color_index=%d',
-                       len(queue_diagnostic), color_index)
-        lv_index = queue_diagnostic[color_index - 1].level
-        return Util.COLOR_DICT[lv_index]

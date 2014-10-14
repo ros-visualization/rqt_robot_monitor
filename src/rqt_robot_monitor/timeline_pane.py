@@ -30,39 +30,61 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# Author: Isaac Saito
+# Author: Isaac Saito, Ze'ev Klapow, Austin Hendrix
 
+import os
+
+from python_qt_binding import loadUi
+from python_qt_binding.QtCore import Signal, Slot
 from python_qt_binding.QtGui import QWidget
+import rospy
+import rospkg
 
+from .timeline import Timeline
 
-class AbstractStatusWidget(QWidget):
+class TimelinePane(QWidget):
     """
-    An abstract widget that consists of status display part and timeline part,
-    although this class doen't define any concrete design for those display
-    parts. Instead this only defines interface methods.
+    This class defines the pane where timeline and its related components
+    are displayed.
     """
 
-    def __init__(self):
-        super(AbstractStatusWidget, self).__init__()
+    sig_update = Signal()
 
-    def new_diagnostic(self, msg, is_forced=False):
+    def __init__(self, parent):
         """
-        Needs overridden in derived classes.
-
-        :param msg: This can be a function that takes either
-                    { DiagnosticArray, DiagnosticsStatus } as an argument.
-        :param is_forced: If True then update occurs even when paused.
+        Because this class is intended to be instantiated via Qt's .ui file,
+        taking argument other than parent widget is not possible, which is
+        ported to set_timeline_data method. That said, set_timeline_data must
+        be called (soon) after an object of this is instantiated.
         """
-        pass
+        super(TimelinePane, self).__init__()
+        self._parent = parent
+        self._timeline = None
 
-    def pause(self, msg):
-        pass
+        rp = rospkg.RosPack()
+        ui_file = os.path.join(rp.get_path('rqt_robot_monitor'),
+                               'resource',
+                               'timelinepane.ui')
+        loadUi(ui_file, self)
 
-    def unpause(self, msg):
-        pass
+        self._timeline_view.show()
 
-    def get_color_for_value(self, queue_diagnostic, color_index):
-        pass
+        self.sig_update.connect(self._timeline_view.redraw)
 
-    def on_pause(self, paused, diagnostic_arr):
-        pass
+    def set_timeline(self, timeline, name=None):
+        assert(self._timeline is None)
+        self._timeline = timeline
+
+        self._timeline_view.set_timeline(timeline, name)
+
+        # connect pause button
+        self._pause_button.clicked[bool].connect(self._timeline.set_paused)
+        self._timeline.pause_changed[bool].connect(
+                self._pause_button.setChecked)
+
+        # bootstrap initial state
+        self._pause_button.setChecked(self._timeline.paused)
+        self.sig_update.emit()
+
+    def redraw(self):
+        self.sig_update.emit()
