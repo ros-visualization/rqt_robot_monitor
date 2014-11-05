@@ -2,8 +2,8 @@
 Changelog for package rqt_robot_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.0 (2014-11-05)
+------------------
 * rewrite rqt_robot_monitor (`#3 <https://github.com/ros-visualization/rqt_robot_plugins/issues/3>`_, `#9 <https://github.com/ros-visualization/rqt_robot_plugins/issues/9>`_, `#32 <https://github.com/ros-visualization/rqt_robot_plugins/issues/32>`_, `#33 <https://github.com/ros-visualization/rqt_robot_plugins/issues/33>`_, `#71 <https://github.com/ros-visualization/rqt_robot_plugins/issues/71>`_)
 * make diagnostics_agg a relative topic (`#32 <https://github.com/ros-visualization/rqt_robot_plugins/issues/32>`_)
 * add rqt_bag plugin
