@@ -1,6 +1,6 @@
 <package>
   <name>rqt_robot_monitor</name>
-  <version>0.4.0</version>
+  <version>0.4.1</version>
   <description>rqt_robot_monitor displays diagnostics_agg topics messages that
    are published by <a href = "http://www.ros.org/wiki/diagnostic_aggregator">diagnostic_aggregator</a>.
    rqt_robot_monitor is a direct port to rqt of
