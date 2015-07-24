@@ -2,6 +2,9 @@
 Changelog for package rqt_robot_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.2 (2015-07-24)
+------------------
+
 0.4.1 (2015-04-30)
 ------------------
 * fix installing missing bag_plugin xml (`#288 <https://github.com/ros-visualization/rqt_common_plugins/issues/288>`_)
