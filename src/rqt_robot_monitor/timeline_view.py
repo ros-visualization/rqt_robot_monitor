@@ -36,8 +36,9 @@ from math import floor
 import rospy
 
 from python_qt_binding.QtCore import QPointF, Signal, Slot
-from python_qt_binding.QtGui import (QColor, QGraphicsPixmapItem,
-                                     QGraphicsView, QIcon, QGraphicsScene)
+from python_qt_binding.QtGui import QColor, QIcon
+from python_qt_binding.QtWidgets import QGraphicsPixmapItem, QGraphicsView, \
+    QGraphicsScene
 
 import util_robot_monitor as util
 

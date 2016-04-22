@@ -35,7 +35,7 @@
 # TODO(ahendrix):
 #   better formatting of key-value pairs in a table
 
-from python_qt_binding.QtGui import QTextEdit
+from python_qt_binding.QtWidgets import QTextEdit
 from python_qt_binding.QtCore import Signal
 
 from diagnostic_msgs.msg import DiagnosticStatus

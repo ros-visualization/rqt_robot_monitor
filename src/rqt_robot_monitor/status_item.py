@@ -32,7 +32,7 @@
 #
 # Author: Austin Hendrix
 
-from python_qt_binding.QtGui import QTreeWidgetItem
+from python_qt_binding.QtWidgets import QTreeWidgetItem
 import util_robot_monitor as util
 
 class _StatusItem(QTreeWidgetItem):

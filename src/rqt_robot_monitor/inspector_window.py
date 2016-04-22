@@ -33,7 +33,7 @@
 # Author: Isaac Saito, Ze'ev Klapow, Austin Hendrix
 
 from python_qt_binding.QtCore import Signal, Slot
-from python_qt_binding.QtGui import QPushButton, QTextEdit, QVBoxLayout, QWidget
+from python_qt_binding.QtWidgets import QPushButton, QTextEdit, QVBoxLayout, QWidget
 import rospy
 
 from .status_snapshot import StatusSnapshot, level_to_text
