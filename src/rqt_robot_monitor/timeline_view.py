@@ -133,7 +133,7 @@ class TimelineView(QGraphicsView):
         """
         width = self.size().width()
         # determine value from mouse click
-        width_cell = width / float(len(self._timeline))
+        width_cell = width / float(max(len(self._timeline), 1))
         return int(floor(x / width_cell))
 
     def set_marker_pos(self, xpos):
