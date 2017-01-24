@@ -39,7 +39,7 @@ from python_qt_binding.QtWidgets import QTextEdit
 from python_qt_binding.QtCore import Signal
 
 from diagnostic_msgs.msg import DiagnosticStatus
-from util_robot_monitor import level_to_text
+from rqt_robot_monitor.util_robot_monitor import level_to_text
 
 class StatusSnapshot(QTextEdit):
     """Display a single static status message. Helps facilitate copy/paste"""
