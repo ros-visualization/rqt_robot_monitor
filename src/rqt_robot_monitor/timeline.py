@@ -32,6 +32,7 @@
 #
 # Author: Austin Hendrix
 
+import copy
 from collections import deque
 from python_qt_binding.QtCore import Signal, Slot, QObject
 
@@ -45,6 +46,7 @@ class Timeline(QObject):
     It can be queried for a past history of diagnostics, and paused
     """
     message_updated = Signal(DiagnosticArray)
+    queue_updated = Signal(deque)
     pause_changed = Signal(bool)
 
     def __init__(self, topic, topic_type, count=30):
@@ -116,6 +118,7 @@ class Timeline(QObject):
         else:
             self._queue.append(msg)
             self.message_updated.emit(msg)
+            self.queue_updated.emit(copy.deepcopy(self._queue))
 
     @property
     def has_messages(self):
@@ -135,7 +138,7 @@ class Timeline(QObject):
     def is_stale(self):
         """ True is this timeline is stale. """
         return self.data_age() > 10.0
-        
+
     def set_position(self, index):
         max_index = len(self._queue) - 1
         min_index = -len(self._queue)
