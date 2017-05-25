@@ -84,6 +84,7 @@ class TimelineView(QGraphicsView):
         assert(self._timeline is None)
         self._name = name
         self._timeline = timeline
+        self._queue = self._timeline.queue
         self._timeline.queue_updated.connect(self._updated)
 
     @Slot(deque)
@@ -91,12 +92,6 @@ class TimelineView(QGraphicsView):
         """
         Update the widget whenever we receive a new message
         """
-        # update the limits
-        self._min = 0
-        self._max = len(self._timeline)-1
-
-        # update the marker position
-        self._xpos_marker = self._timeline.get_position()
 
         # update timeline queue
         self._queue = queue
@@ -188,6 +183,13 @@ class TimelineView(QGraphicsView):
         Gets called either when new msg comes in or when marker is moved by
         user.
         """
+        # update the limits
+        self._min = 0
+        self._max = len(self._timeline)-1
+
+        # update the marker position
+        self._xpos_marker = self._timeline.get_position()
+
         self._scene.clear()
 
         qsize = self.size()

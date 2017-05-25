@@ -52,6 +52,7 @@ class Timeline(QObject):
     def __init__(self, topic, topic_type, count=30):
         super(Timeline, self).__init__()
         self._queue = deque(maxlen=count)
+        self._queue_copy = deque(maxlen=count)
         self._count = count
         self._current_index = -1 # rightmost item
 
@@ -86,6 +87,7 @@ class Timeline(QObject):
                 self._paused_queue = deque(self._queue, self._queue.maxlen)
             else:
                 self._queue = self._paused_queue
+                self._queue_copy = copy.deepcopy(self._paused_queue)
                 self._paused_queue = None
 
                 # update pointer to latest message
@@ -117,8 +119,13 @@ class Timeline(QObject):
             self._paused_queue.append(msg)
         else:
             self._queue.append(msg)
+            self._queue_copy = copy.deepcopy(self._queue)
+            self.queue_updated.emit(self._queue_copy)
             self.message_updated.emit(msg)
-            self.queue_updated.emit(copy.deepcopy(self._queue))
+
+    @property
+    def queue(self):
+        return self._queue_copy
 
     @property
     def has_messages(self):
