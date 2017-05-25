@@ -32,6 +32,7 @@
 #
 # Author: Austin Hendrix
 
+import copy
 from collections import deque
 from python_qt_binding.QtCore import Signal, Slot, QObject
 
@@ -45,11 +46,13 @@ class Timeline(QObject):
     It can be queried for a past history of diagnostics, and paused
     """
     message_updated = Signal(DiagnosticArray)
+    queue_updated = Signal(deque)
     pause_changed = Signal(bool)
 
     def __init__(self, topic, topic_type, count=30):
         super(Timeline, self).__init__()
         self._queue = deque(maxlen=count)
+        self._queue_copy = deque(maxlen=count)
         self._count = count
         self._current_index = -1 # rightmost item
 
@@ -84,6 +87,7 @@ class Timeline(QObject):
                 self._paused_queue = deque(self._queue, self._queue.maxlen)
             else:
                 self._queue = self._paused_queue
+                self._queue_copy = copy.deepcopy(self._paused_queue)
                 self._paused_queue = None
 
                 # update pointer to latest message
@@ -115,7 +119,13 @@ class Timeline(QObject):
             self._paused_queue.append(msg)
         else:
             self._queue.append(msg)
+            self._queue_copy = copy.deepcopy(self._queue)
+            self.queue_updated.emit(self._queue_copy)
             self.message_updated.emit(msg)
+
+    @property
+    def queue(self):
+        return self._queue_copy
 
     @property
     def has_messages(self):
@@ -135,7 +145,7 @@ class Timeline(QObject):
     def is_stale(self):
         """ True is this timeline is stale. """
         return self.data_age() > 10.0
-        
+
     def set_position(self, index):
         max_index = len(self._queue) - 1
         min_index = -len(self._queue)

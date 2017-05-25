@@ -33,6 +33,7 @@
 # Author: Isaac Saito, Ze'ev Klapow, Austin Hendrix
 
 from math import floor
+from collections import deque
 import rospy
 
 from python_qt_binding.QtCore import QPointF, Signal, Slot
@@ -73,6 +74,7 @@ class TimelineView(QGraphicsView):
         self.redraw.connect(self._slot_redraw)
 
         self._timeline = None
+        self._queue = deque(maxlen=30)
 
         self.setUpdatesEnabled(True)
         self._scene = QGraphicsScene(self)
@@ -82,19 +84,17 @@ class TimelineView(QGraphicsView):
         assert(self._timeline is None)
         self._name = name
         self._timeline = timeline
-        self._timeline.message_updated.connect(self._updated)
+        self._queue = self._timeline.queue
+        self._timeline.queue_updated.connect(self._updated)
 
-    @Slot()
-    def _updated(self):
+    @Slot(deque)
+    def _updated(self, queue):
         """
         Update the widget whenever we receive a new message
         """
-        # update the limits
-        self._min = 0
-        self._max = len(self._timeline)-1
 
-        # update the marker position
-        self._xpos_marker = self._timeline.get_position()
+        # update timeline queue
+        self._queue = queue
 
         # redraw
         self.redraw.emit()
@@ -183,6 +183,13 @@ class TimelineView(QGraphicsView):
         Gets called either when new msg comes in or when marker is moved by
         user.
         """
+        # update the limits
+        self._min = 0
+        self._max = len(self._timeline)-1
+
+        # update the marker position
+        self._xpos_marker = self._timeline.get_position()
+
         self._scene.clear()
 
         qsize = self.size()
@@ -192,7 +199,7 @@ class TimelineView(QGraphicsView):
         is_enabled = self.isEnabled()
 
         if self._timeline is not None:
-            for i, m in enumerate(self._timeline):
+            for i, m in enumerate(self._queue):
                 h = self.viewport().height()
 
                 # Figure out each cell's color.
