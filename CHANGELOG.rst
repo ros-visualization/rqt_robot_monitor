@@ -2,6 +2,10 @@
 Changelog for package rqt_robot_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.8 (2017-09-26)
+------------------
+* Fix apparent threading bug in timeline_view (`#5 <https://github.com/ros-visualization/rqt_robot_monitor/pull/5>`_)
+
 0.5.7 (2017-04-26)
 ------------------
 
