@@ -34,6 +34,8 @@
 
 import copy
 from collections import deque
+from threading import RLock
+
 from python_qt_binding.QtCore import Signal, Slot, QObject
 
 import rospy
@@ -55,6 +57,7 @@ class Timeline(QObject):
         self._queue_copy = deque(maxlen=count)
         self._count = count
         self._current_index = -1 # rightmost item
+        self._lock = RLock()
 
         # the paused queue is a backup copy of the queue that is updated with
         # new messages while the timeline is paused, so that new messages and
@@ -118,7 +121,8 @@ class Timeline(QObject):
         if self.paused:
             self._paused_queue.append(msg)
         else:
-            self._queue.append(msg)
+            with self._lock:
+                self._queue.append(msg)
             self._queue_copy = copy.deepcopy(self._queue)
             self.queue_updated.emit(self._queue_copy)
             self.message_updated.emit(msg)
@@ -147,23 +151,28 @@ class Timeline(QObject):
         return self.data_age() > 10.0
 
     def set_position(self, index):
-        max_index = len(self._queue) - 1
-        min_index = -len(self._queue)
-        index = min(index, max_index)
-        index = max(index, min_index)
-        if index != self._current_index:
-            self._current_index = index
-            self.message_updated.emit(self._queue[index])
+        with self._lock:
+            max_index = len(self._queue) - 1
+            min_index = -len(self._queue)
+            index = min(index, max_index)
+            index = max(index, min_index)
+            if index != self._current_index:
+                self._current_index = index
+                self.message_updated.emit(self._queue[index])
 
     def get_position(self):
-        index = self._current_index
-        if index < 0:
-            index = len(self._queue) + index
-        return index
+        with self._lock:
+            index = self._current_index
+            if index < 0:
+                index = len(self._queue) + index
+            return index
 
     def __len__(self):
-        return len(self._queue)
+        with self._lock:
+            return len(self._queue)
 
     def __iter__(self):
-        for msg in self._queue:
+        with self._lock:
+            q = list(self._queue)
+        for msg in q:
             yield msg
