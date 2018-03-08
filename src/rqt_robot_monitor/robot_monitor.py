@@ -145,7 +145,8 @@ class RobotMonitorWidget(QWidget):
                 self._warn_tree[name].update(status, status.name)
 
             # Check for errors
-            if status.level == DiagnosticStatus.ERROR:
+            if (status.level == DiagnosticStatus.ERROR or
+                    status.level == DiagnosticStatus.STALE):
                 name = status.name
                 self._err_tree[name].update(status, status.name)
 
