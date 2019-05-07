@@ -40,26 +40,27 @@ from python_qt_binding.QtWidgets import QWidget
 import rospy
 import rospkg
 
-from .timeline import Timeline
+from rqt_robot_monitor.timeline import Timeline
+
 
 class TimelinePane(QWidget):
     """
     This class defines the pane where timeline and its related components
     are displayed.
     """
+    status_updated = Signal(list)
+    pause_changed = Signal(bool)
+    position_changed = Signal(int)
+    redraw = Signal()
 
-    sig_update = Signal()
-
-    def __init__(self, parent):
+    def __init__(self, parent, paused=False):
         """
         Because this class is intended to be instantiated via Qt's .ui file,
         taking argument other than parent widget is not possible, which is
         ported to set_timeline_data method. That said, set_timeline_data must
         be called (soon) after an object of this is instantiated.
         """
-        super(TimelinePane, self).__init__()
-        self._parent = parent
-        self._timeline = None
+        super(TimelinePane, self).__init__(parent=parent)
 
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_robot_monitor'),
@@ -68,23 +69,37 @@ class TimelinePane(QWidget):
         loadUi(ui_file, self)
 
         self._timeline_view.show()
-
-        self.sig_update.connect(self._timeline_view.redraw)
-
-    def set_timeline(self, timeline, name=None):
-        assert(self._timeline is None)
-        self._timeline = timeline
-
-        self._timeline_view.set_timeline(timeline, name)
+        self._timeline_view.position_changed.connect(self._signal_position_changed)
 
         # connect pause button
-        self._pause_button.clicked[bool].connect(self._timeline.set_paused)
-        self._timeline.pause_changed[bool].connect(
-                self._pause_button.setChecked)
+        self._pause_button.clicked[bool].connect(self._signal_pause_changed)
 
         # bootstrap initial state
-        self._pause_button.setChecked(self._timeline.paused)
-        self.sig_update.emit()
+        self._pause_button.setChecked(paused)
 
-    def redraw(self):
-        self.sig_update.emit()
+        self.redraw.connect(self._signal_redraw)
+
+    def _signal_pause_changed(self, paused):
+        self.pause_changed.emit(paused)
+
+    def _signal_position_changed(self, position):
+        self.position_changed.emit(position)
+
+    @Slot(bool)
+    def set_paused(self, paused):
+        self._pause_button.setChecked(paused)
+
+    @Slot(list)
+    def set_levels(self, levels):
+        '''
+        :param levels: List of status levels
+        '''
+        self._timeline_view.set_levels(levels)
+
+    @Slot(int)
+    def set_position(self, position):
+        self._timeline_view.set_marker_pos(position)
+
+    @Slot()
+    def _signal_redraw(self):
+        self._timeline_view.redraw.emit()

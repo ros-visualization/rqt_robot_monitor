@@ -42,6 +42,7 @@ from python_qt_binding.QtWidgets import QGraphicsPixmapItem, QGraphicsView, \
     QGraphicsScene
 
 import rqt_robot_monitor.util_robot_monitor as util
+from diagnostic_msgs.msg import DiagnosticStatus
 
 
 class TimelineView(QGraphicsView):
@@ -54,13 +55,14 @@ class TimelineView(QGraphicsView):
     set necessary data.
     """
 
+    paused = Signal(bool)
+    position_changed = Signal(int)
     redraw = Signal()
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         """Cannot take args other than parent due to loadUi limitation."""
 
-        super(TimelineView, self).__init__()
-        self._parent = parent
+        super(TimelineView, self).__init__(parent=parent)
         self._timeline_marker = QIcon.fromTheme('system-search')
 
         self._min = 0
@@ -71,33 +73,13 @@ class TimelineView(QGraphicsView):
         self._timeline_marker_height = 15
         self._last_marker_at = 2
 
-        self.redraw.connect(self._slot_redraw)
-
-        self._timeline = None
-        self._queue = deque(maxlen=30)
-
         self.setUpdatesEnabled(True)
         self._scene = QGraphicsScene(self)
         self.setScene(self._scene)
 
-    def set_timeline(self, timeline, name=None):
-        assert(self._timeline is None)
-        self._name = name
-        self._timeline = timeline
-        self._queue = self._timeline.queue
-        self._timeline.queue_updated.connect(self._updated)
+        self._levels = None
 
-    @Slot(deque)
-    def _updated(self, queue):
-        """
-        Update the widget whenever we receive a new message
-        """
-
-        # update timeline queue
-        self._queue = queue
-
-        # redraw
-        self.redraw.emit()
+        self.redraw.connect(self._signal_redraw)
 
     def mouseReleaseEvent(self, event):
         """
@@ -110,9 +92,8 @@ class TimelineView(QGraphicsView):
         """
         :type event: QMouseEvent
         """
-        assert(self._timeline is not None)
         # Pause the timeline
-        self._timeline.set_paused(True)
+        self.paused.emit(True)
 
         xpos = self.pos_from_x(event.x())
         self.set_marker_pos(xpos)
@@ -133,22 +114,32 @@ class TimelineView(QGraphicsView):
         """
         width = self.size().width()
         # determine value from mouse click
-        width_cell = width / float(max(len(self._timeline), 1))
+        width_cell = width / float(max(len(self._levels), 1))
         return int(floor(x / width_cell))
 
+    @Slot(int)
     def set_marker_pos(self, xpos):
         """
         Set marker position from index
 
         :param xpos: Marker index
         """
-        assert(self._timeline is not None)
+        if self._levels is None:
+            rospy.logwarn('Called set_marker_pos before set_levels')
+            return
+
+        if xpos == -1:
+            # stick to the latest when position is -1
+            self._xpos_marker = xpos
+            self.redraw.emit()
+            return
+
         self._xpos_marker = self._clamp(xpos, self._min, self._max)
 
         if self._xpos_marker == self._last_marker_at:
             # Clicked the same pos as last time.
             return
-        elif self._xpos_marker >= len(self._timeline):
+        elif self._xpos_marker >= len(self._levels):
             # When clicked out-of-region
             return
 
@@ -156,9 +147,7 @@ class TimelineView(QGraphicsView):
 
         # Set timeline position. This broadcasts the message at that position
         # to all of the other viewers
-        self._timeline.set_position(self._xpos_marker)
-
-        # redraw
+        self.position_changed.emit(self._xpos_marker)
         self.redraw.emit()
 
     def _clamp(self, val, min, max):
@@ -177,45 +166,54 @@ class TimelineView(QGraphicsView):
             return max
         return val
 
+    @Slot(list)
+    def set_levels(self, levels):
+        self._levels = levels
+        self.redraw.emit()
+
     @Slot()
-    def _slot_redraw(self):
+    def _signal_redraw(self):
         """
         Gets called either when new msg comes in or when marker is moved by
         user.
         """
+        if self._levels is None:
+            return
+
         # update the limits
         self._min = 0
-        self._max = len(self._timeline)-1
-
-        # update the marker position
-        self._xpos_marker = self._timeline.get_position()
+        self._max = len(self._levels)-1
 
         self._scene.clear()
 
         qsize = self.size()
         width_tl = qsize.width()
 
-        w = width_tl / float(max(len(self._timeline), 1))
+        w = width_tl / float(max(len(self._levels), 1))
         is_enabled = self.isEnabled()
 
-        if self._timeline is not None:
-            for i, m in enumerate(self._queue):
-                h = self.viewport().height()
+        for i, level in enumerate(self._levels):
+            h = self.viewport().height()
 
-                # Figure out each cell's color.
-                qcolor = QColor('grey')
-                if is_enabled:
-                    qcolor = self._get_color_for_value(m)
-
+            # Figure out each cell's color.
+            qcolor = QColor('grey')
+            if is_enabled and level is not None:
+                if level > DiagnosticStatus.ERROR:
+                    # Stale items should be reported as errors unless all stale
+                    level = DiagnosticStatus.ERROR
+                qcolor = util.level_to_color(level)
 #  TODO Use this code for adding gradation to the cell color.
 #                end_color = QColor(0.5 * QColor('red').value(),
 #                                   0.5 * QColor('green').value(),
 #                                   0.5 * QColor('blue').value())
 
-                self._scene.addRect(w * i, 0, w, h, QColor('white'), qcolor)
+            self._scene.addRect(w * i, 0, w, h, QColor('white'), qcolor)
 
         # Setting marker.
-        xpos_marker = (self._xpos_marker * w +
+        xpos_marker = self._xpos_marker
+        while xpos_marker < 0:
+            xpos_marker += len(self._levels)
+        xpos_marker = (xpos_marker * w +
                        (w / 2.0) - (self._timeline_marker_width / 2.0))
         pos_marker = QPointF(xpos_marker, 0)
 
@@ -231,17 +229,3 @@ class TimelineView(QGraphicsView):
                                                 self._timeline_marker_width,
                                                 self._timeline_marker_height)
         return QGraphicsPixmapItem(timeline_marker_icon_pixmap)
-
-    def _get_color_for_value(self, msg):
-        """
-        :type msg: DiagnosticArray
-        """
-
-        if self._name is not None:
-            # look up name in msg; return grey if not found
-            status = util.get_status_by_name(msg, self._name)
-            if status is not None:
-                return util.level_to_color(status.level)
-            else:
-                return QColor('grey')
-        return util.get_color_for_message(msg)

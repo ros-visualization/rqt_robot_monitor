@@ -46,17 +46,14 @@ from diagnostic_msgs.msg import DiagnosticArray
 class InspectorWindow(QWidget):
     closed = Signal(str)
 
-    def __init__(self, parent, name, status, timeline):
+    def __init__(self, parent, name, timeline):
         """
-        :type status: DiagnosticStatus
-        :param close_callback: When the instance of this class
-                               (InspectorWindow) terminates, this callback gets
-                               called.
+        :param name: Name of inspecting diagnostic status
+        :param timeline: Timeline object from which a status is fetched
         """
         #TODO(Isaac) UI construction that currently is done in this method,
         #            needs to be done in .ui file.
-
-        super(InspectorWindow, self).__init__()
+        super(InspectorWindow, self).__init__(parent=parent)
         self.setWindowTitle(name)
         self._name = name
 
@@ -66,22 +63,26 @@ class InspectorWindow(QWidget):
 
         self.layout_vertical.addWidget(self.disp, 1)
 
-        if timeline is not None:
-            self.timeline_pane = TimelinePane(self)
-            self.timeline_pane.set_timeline(timeline, name)
-            self.layout_vertical.addWidget(self.timeline_pane, 0)
+        self.timeline = timeline
+        self.timeline.message_updated.connect(self.message_updated)
+        self.timeline.queue_updated.connect(self.queue_updated)
 
-            self.snapshot = QPushButton("Snapshot")
-            self.snapshot.clicked.connect(self._take_snapshot)
-            self.layout_vertical.addWidget(self.snapshot)
+        self.timeline_pane = TimelinePane(self, self.timeline.paused)
+        self.timeline_pane.pause_changed.connect(self.timeline.set_paused)
+        self.timeline_pane.position_changed.connect(self.timeline.set_position)
+        self.timeline.pause_changed.connect(self.timeline_pane.set_paused)
+        self.timeline.position_changed.connect(self.timeline_pane.set_position)
+        self.layout_vertical.addWidget(self.timeline_pane, 0)
+
+        self.snapshot = QPushButton("Snapshot")
+        self.snapshot.clicked.connect(self._take_snapshot)
+        self.layout_vertical.addWidget(self.snapshot)
 
         self.snaps = []
 
         self.setLayout(self.layout_vertical)
         # TODO better to be configurable where to appear.
         self.resize(400, 600)
-        self.show()
-        self.message_updated(status)
 
     def closeEvent(self, event):
         """ called when this window is closed
@@ -95,12 +96,21 @@ class InspectorWindow(QWidget):
             snap.close()
         self.closed.emit(self._name)
 
-    @Slot(DiagnosticArray)
-    def message_updated(self, msg):
-        status = util.get_status_by_name(msg, self._name)
-        scroll_value = self.disp.verticalScrollBar().value()
+    @Slot()
+    def queue_updated(self):
+        # update timeline pane
+        # collect worst status levels for each history
+        status = self.timeline.get_all_status_by_name(self._name)
+        self.timeline_pane.set_levels([s.level for s in status])
+        self.timeline_pane.set_position(self.timeline.position)
+        self.timeline_pane.redraw.emit()
 
+    @Slot(dict)
+    def message_updated(self, status):
         rospy.logdebug('InspectorWin message_updated')
+        
+        status = status[self._name]
+        scroll_value = self.disp.verticalScrollBar().value()
 
         self.status = status
         self.disp.write_status.emit(status)
