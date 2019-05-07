@@ -42,10 +42,10 @@ from python_qt_binding.QtGui import QPalette
 from python_qt_binding.QtWidgets import QWidget, QTreeWidgetItem
 import rospy
 
-from .inspector_window import InspectorWindow
-from .status_item import StatusItem
-from .timeline_pane import TimelinePane
-from .timeline import Timeline
+from rqt_robot_monitor.inspector_window import InspectorWindow
+from rqt_robot_monitor.status_item import StatusItem
+from rqt_robot_monitor.timeline_pane import TimelinePane
+from rqt_robot_monitor.timeline import Timeline
 import rqt_robot_monitor.util_robot_monitor as util
 
 class RobotMonitorWidget(QWidget):

@@ -38,7 +38,7 @@
 from rqt_bag.plugins.plugin import Plugin
 from rqt_bag import TopicMessageView
 
-from .robot_monitor import RobotMonitorWidget
+from rqt_robot_monitor.robot_monitor import RobotMonitorWidget
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 
 class RobotMonitorBagPlugin(Plugin):
