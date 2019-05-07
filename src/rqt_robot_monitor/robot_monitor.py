@@ -48,6 +48,7 @@ from rqt_robot_monitor.timeline_pane import TimelinePane
 from rqt_robot_monitor.timeline import Timeline
 import rqt_robot_monitor.util_robot_monitor as util
 
+
 class RobotMonitorWidget(QWidget):
     """
     NOTE: RobotMonitorWidget.shutdown function needs to be called
@@ -190,6 +191,7 @@ class RobotMonitorWidget(QWidget):
         :type column: int
         """
         rospy.logdebug('RobotMonitorWidget _tree_clicked col=%d', column)
+
         if item.name in self._inspectors:
             self._inspectors[item.name].activateWindow()
         else:
