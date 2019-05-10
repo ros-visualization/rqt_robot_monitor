@@ -62,6 +62,9 @@ class RobotMonitorWidget(QWidget):
     _TREE_WARN = 2
     _TREE_ERR = 3
 
+    _message_updated = Signal(dict)
+    _queue_updated = Signal()
+
     def __init__(self, context, topic=None):
         """
         :param context: plugin context hook to enable adding widgets as a
@@ -79,13 +82,22 @@ class RobotMonitorWidget(QWidget):
         self.setObjectName(obj_name)
         self.setWindowTitle(obj_name)
 
+        self._message_updated_processing = False
+        self._queue_updated_processing = False
+
         # if we're given a topic, create a timeline. otherwise, don't
         #  this can be used later when writing an rqt_bag plugin
         if topic:
             # create timeline data structure
             self._timeline = Timeline(topic, DiagnosticArray)
-            self._timeline.message_updated.connect(self.message_updated)
-            self._timeline.queue_updated.connect(self.queue_updated)
+            self._timeline.message_updated.connect(
+                self.message_updated, Qt.DirectConnection)
+            self._timeline.queue_updated.connect(
+                self.queue_updated, Qt.DirectConnection)
+            self._message_updated.connect(
+                self._signal_message_updated, Qt.QueuedConnection)
+            self._queue_updated.connect(
+                self._signal_queue_updated, Qt.QueuedConnection)
 
             # create timeline pane widget
             self._timeline_pane = TimelinePane(self, self._timeline.paused)
@@ -123,6 +135,17 @@ class RobotMonitorWidget(QWidget):
 
     @Slot(dict)
     def message_updated(self, status):
+        '''
+        This method just calls _signal_message_updated in 'best effort' manner.
+        This method should be called by signal with DirectConnection.
+        '''
+        if self._message_updated_processing:
+            return
+        self._message_updated_processing = True
+        self._message_updated.emit(status)
+
+    @Slot(dict)
+    def _signal_message_updated(self, status):
         """ DiagnosticArray message callback """
 
         # Walk the status array and update the tree
@@ -162,13 +185,27 @@ class RobotMonitorWidget(QWidget):
         self.warn_flattree.resizeColumnToContents(0)
         self.err_flattree.resizeColumnToContents(0)
 
+        self._message_updated_processing = False
+
     @Slot()
     def queue_updated(self):
+        '''
+        This method just calls _signal_queue_updated in 'best effort' manner.
+        This method should be called by signal with DirectConnection.
+        '''
+        if self._queue_updated_processing:
+            return
+        self._queue_updated_processing = True
+        self._queue_updated.emit()
+
+    @Slot()
+    def _signal_queue_updated(self):
         # update timeline pane
         # collect worst status levels for each history
         levels = [max([s.level for s in s.values()]) for s in self._timeline]
         self._timeline_pane.set_levels(levels)
         self._timeline_pane.redraw.emit()
+        self._queue_updated_processing = False
 
     def resizeEvent(self, evt):
         """Overridden from QWidget"""

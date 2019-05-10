@@ -32,7 +32,7 @@
 #
 # Author: Isaac Saito, Ze'ev Klapow, Austin Hendrix
 
-from python_qt_binding.QtCore import Signal, Slot
+from python_qt_binding.QtCore import Qt, Signal, Slot
 from python_qt_binding.QtWidgets import QPushButton, QTextEdit, QVBoxLayout, QWidget
 import rospy
 
@@ -45,6 +45,8 @@ from diagnostic_msgs.msg import DiagnosticArray
 
 class InspectorWindow(QWidget):
     closed = Signal(str)
+    _message_updated = Signal(dict)
+    _queue_updated = Signal()
 
     def __init__(self, parent, name, timeline):
         """
@@ -63,9 +65,18 @@ class InspectorWindow(QWidget):
 
         self.layout_vertical.addWidget(self.disp, 1)
 
+        self._message_updated_processing = False
+        self._queue_updated_processing = False
+
         self.timeline = timeline
-        self.timeline.message_updated.connect(self.message_updated)
-        self.timeline.queue_updated.connect(self.queue_updated)
+        self.timeline.message_updated.connect(
+            self.message_updated, Qt.DirectConnection)
+        self.timeline.queue_updated.connect(
+            self.queue_updated, Qt.DirectConnection)
+        self._message_updated.connect(
+            self._signal_message_updated, Qt.QueuedConnection)
+        self._queue_updated.connect(
+            self._signal_queue_updated, Qt.QueuedConnection)
 
         self.timeline_pane = TimelinePane(self, self.timeline.paused)
         self.timeline_pane.pause_changed.connect(self.timeline.set_paused)
@@ -98,17 +109,40 @@ class InspectorWindow(QWidget):
 
     @Slot()
     def queue_updated(self):
+        '''
+        This method just calls _signal_queue_updated in 'best effort' manner.
+        This method should be called by signal with DirectConnection.
+        '''
+        if self._queue_updated_processing:
+            return
+        self._queue_updated_processing = True
+        self._queue_updated.emit()
+
+    @Slot()
+    def _signal_queue_updated(self):
         # update timeline pane
         # collect worst status levels for each history
         status = self.timeline.get_all_status_by_name(self._name)
         self.timeline_pane.set_levels([s.level for s in status])
         self.timeline_pane.set_position(self.timeline.position)
         self.timeline_pane.redraw.emit()
+        self._queue_updated_processing = False
 
     @Slot(dict)
     def message_updated(self, status):
+        '''
+        This method just calls _signal_message_updated in 'best effort' manner.
+        This method should be called by signal with DirectConnection.
+        '''
+        if self._message_updated_processing:
+            return
+        self._message_updated_processing = True
+        self._message_updated.emit(status)
+
+    @Slot(dict)
+    def _signal_message_updated(self, status):
         rospy.logdebug('InspectorWin message_updated')
-        
+
         status = status[self._name]
         scroll_value = self.disp.verticalScrollBar().value()
 
@@ -118,6 +152,7 @@ class InspectorWindow(QWidget):
         if self.disp.verticalScrollBar().maximum() < scroll_value:
             scroll_value = self.disp.verticalScrollBar().maximum()
         self.disp.verticalScrollBar().setValue(scroll_value)
+        self._message_updated_processing = False
 
     def _take_snapshot(self):
         snap = StatusSnapshot(status=self.status)
