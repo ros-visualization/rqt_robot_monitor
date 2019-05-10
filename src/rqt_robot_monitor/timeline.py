@@ -170,11 +170,11 @@ class Timeline(QObject):
         return self._queue[self.position][name]
 
     def get_all_status_by_name(self, name):
-        return [status[name] for status in self._queue]
+        return [status[name] for status in list(self._queue)]
 
     def __len__(self):
         return len(self._queue)
 
     def __iter__(self):
-        for msg in self._queue:
+        for msg in list(self._queue):
             yield msg
