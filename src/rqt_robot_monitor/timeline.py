@@ -32,7 +32,6 @@
 #
 # Author: Austin Hendrix
 
-import copy
 from collections import deque
 from python_qt_binding.QtCore import Signal, Slot, QObject
 
@@ -40,19 +39,20 @@ import rospy
 
 from diagnostic_msgs.msg import DiagnosticArray
 
+
 class Timeline(QObject):
     """
     A class which represents the status history of diagnostics
     It can be queried for a past history of diagnostics, and paused
     """
-    message_updated = Signal(DiagnosticArray)
-    queue_updated = Signal(deque)
+    message_updated = Signal(dict)
+    queue_updated = Signal()
     pause_changed = Signal(bool)
+    position_changed = Signal(int)
 
     def __init__(self, topic, topic_type, count=30):
         super(Timeline, self).__init__()
         self._queue = deque(maxlen=count)
-        self._queue_copy = deque(maxlen=count)
         self._count = count
         self._current_index = -1 # rightmost item
 
@@ -61,7 +61,6 @@ class Timeline(QObject):
         # new history are not lost
         self._paused_queue = None
 
-        self._have_messages = False
         self._last_message_time = 0
 
         self._subscriber = rospy.Subscriber(topic, topic_type, self.callback,
@@ -87,12 +86,11 @@ class Timeline(QObject):
                 self._paused_queue = deque(self._queue, self._queue.maxlen)
             else:
                 self._queue = self._paused_queue
-                self._queue_copy = copy.deepcopy(self._paused_queue)
                 self._paused_queue = None
 
                 # update pointer to latest message
                 self._current_index = -1
-                self.message_updated.emit(self._queue[self._current_index])
+                self.message_updated.emit(self._queue[self.position])
             self.pause_changed.emit(pause)
 
     @property
@@ -113,19 +111,16 @@ class Timeline(QObject):
         :type msg: Either DiagnosticArray or DiagnosticsStatus. Can be
                    determined by __init__'s arg "msg_callback".
         """
-        self._have_messages = True
         self._last_message_time = rospy.get_time()
-        if self.paused:
-            self._paused_queue.append(msg)
-        else:
-            self._queue.append(msg)
-            self._queue_copy = copy.deepcopy(self._queue)
-            self.queue_updated.emit(self._queue_copy)
-            self.message_updated.emit(msg)
+        dic = {status.name: status for status in msg.status}
 
-    @property
-    def queue(self):
-        return self._queue_copy
+        if self.paused:
+            self._paused_queue.append(dic)
+        else:
+            self._queue.append(dic)
+            self.queue_updated.emit()
+            if self.position == -1:
+                self.message_updated.emit(dic)
 
     @property
     def has_messages(self):
@@ -133,8 +128,9 @@ class Timeline(QObject):
         True if this timeline has received any messages.
         False if no messages have been received yet
         """
-        return self._have_messages
+        return len(self._queue) > 0
 
+    @property
     def data_age(self):
         """ Get the age (in seconds) of the most recent diagnostic message """
         current_time = rospy.get_time()
@@ -144,26 +140,41 @@ class Timeline(QObject):
     @property
     def is_stale(self):
         """ True is this timeline is stale. """
-        return self.data_age() > 10.0
+        return self.data_age > 10.0
 
-    def set_position(self, index):
+    @property
+    def position(self):
+        index = self._current_index
+        while index < -1:
+            index = len(self._queue) + index
+        if index == len(self._queue) - 1:
+            index = -1
+        return index
+
+    @position.setter
+    def position(self, index):
         max_index = len(self._queue) - 1
         min_index = -len(self._queue)
         index = min(index, max_index)
         index = max(index, min_index)
-        if index != self._current_index:
+        if index != self._current_index or self._current_index == -1:
             self._current_index = index
             self.message_updated.emit(self._queue[index])
 
-    def get_position(self):
-        index = self._current_index
-        if index < 0:
-            index = len(self._queue) + index
-        return index
+    @Slot(int)
+    def set_position(self, position):
+        self.position = position
+        self.position_changed.emit(position)
+
+    def get_current_status_by_name(self, name):
+        return self._queue[self.position][name]
+
+    def get_all_status_by_name(self, name):
+        return [status[name] for status in list(self._queue)]
 
     def __len__(self):
         return len(self._queue)
 
     def __iter__(self):
-        for msg in self._queue:
+        for msg in list(self._queue):
             yield msg

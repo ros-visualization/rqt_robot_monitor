@@ -39,14 +39,15 @@ from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import QTimer, Signal, Qt, Slot
 from python_qt_binding.QtGui import QPalette
-from python_qt_binding.QtWidgets import QWidget
+from python_qt_binding.QtWidgets import QWidget, QTreeWidgetItem
 import rospy
 
-from .inspector_window import InspectorWindow
-from .status_item import StatusItem
-from .timeline_pane import TimelinePane
-from .timeline import Timeline
+from rqt_robot_monitor.inspector_window import InspectorWindow
+from rqt_robot_monitor.status_item import StatusItem
+from rqt_robot_monitor.timeline_pane import TimelinePane
+from rqt_robot_monitor.timeline import Timeline
 import rqt_robot_monitor.util_robot_monitor as util
+
 
 class RobotMonitorWidget(QWidget):
     """
@@ -61,7 +62,8 @@ class RobotMonitorWidget(QWidget):
     _TREE_WARN = 2
     _TREE_ERR = 3
 
-    message_updated = Signal(DiagnosticArray)
+    _message_updated = Signal(dict)
+    _queue_updated = Signal()
 
     def __init__(self, context, topic=None):
         """
@@ -80,29 +82,37 @@ class RobotMonitorWidget(QWidget):
         self.setObjectName(obj_name)
         self.setWindowTitle(obj_name)
 
-        self.message_updated.connect(self.message_cb)
+        self._message_updated_processing = False
+        self._queue_updated_processing = False
 
         # if we're given a topic, create a timeline. otherwise, don't
         #  this can be used later when writing an rqt_bag plugin
         if topic:
             # create timeline data structure
             self._timeline = Timeline(topic, DiagnosticArray)
-            self._timeline.message_updated.connect(self.message_updated)
+            self._timeline.message_updated.connect(
+                self.message_updated, Qt.DirectConnection)
+            self._timeline.queue_updated.connect(
+                self.queue_updated, Qt.DirectConnection)
+            self._message_updated.connect(
+                self._signal_message_updated, Qt.QueuedConnection)
+            self._queue_updated.connect(
+                self._signal_queue_updated, Qt.QueuedConnection)
 
             # create timeline pane widget
-            self.timeline_pane = TimelinePane(self)
+            self._timeline_pane = TimelinePane(self, self._timeline.paused)
+            self._timeline_pane.pause_changed.connect(self._timeline.set_paused)
+            self._timeline_pane.position_changed.connect(self._timeline.set_position)
+            self._timeline.pause_changed.connect(self._timeline_pane.set_paused)
+            self._timeline.position_changed.connect(self._timeline_pane.set_position)
 
-            self.timeline_pane.set_timeline(self._timeline)
-
-            self.vlayout_top.addWidget(self.timeline_pane)
-            self.timeline_pane.show()
+            self.vlayout_top.addWidget(self._timeline_pane)
+            self._timeline_pane.show()
         else:
             self._timeline = None
-            self.timeline_pane = None
+            self._timeline_pane = None
 
         self._inspectors = {}
-        # keep a copy of the current message for opening new inspectors
-        self._current_msg = None
 
         self.tree_all_devices.itemDoubleClicked.connect(self._tree_clicked)
         self.warn_flattree.itemDoubleClicked.connect(self._tree_clicked)
@@ -123,32 +133,40 @@ class RobotMonitorWidget(QWidget):
         self._warn_tree = StatusItem(self.warn_flattree.invisibleRootItem())
         self._err_tree = StatusItem(self.err_flattree.invisibleRootItem())
 
-    @Slot(DiagnosticArray)
-    def message_cb(self, msg):
+    @Slot(dict)
+    def message_updated(self, status):
+        '''
+        This method just calls _signal_message_updated in 'best effort' manner.
+        This method should be called by signal with DirectConnection.
+        '''
+        if self._message_updated_processing:
+            return
+        self._message_updated_processing = True
+        self._message_updated.emit(status)
+
+    @Slot(dict)
+    def _signal_message_updated(self, status):
         """ DiagnosticArray message callback """
-        self._current_msg = msg
 
         # Walk the status array and update the tree
-        for status in msg.status:
+        for name, status in status.items():
             # Compute path and walk to appropriate subtree
-            path = status.name.split('/')
+            path = name.split('/')
             if path[0] == '':
                 path = path[1:]
             tmp_tree = self._tree
             for p in path:
                 tmp_tree = tmp_tree[p]
-            tmp_tree.update(status, util.get_resource_name(status.name))
+            tmp_tree.update(status, util.get_resource_name(name))
 
             # Check for warnings
             if status.level == DiagnosticStatus.WARN:
-                name = status.name
-                self._warn_tree[name].update(status, status.name)
+                self._warn_tree[name].update(status, name)
 
             # Check for errors
             if (status.level == DiagnosticStatus.ERROR or
-                    status.level == DiagnosticStatus.STALE):
-                name = status.name
-                self._err_tree[name].update(status, status.name)
+                status.level == DiagnosticStatus.STALE):
+                self._err_tree[name].update(status, name)
 
         # For any items in the tree that were not updated, remove them
         self._tree.prune()
@@ -167,11 +185,33 @@ class RobotMonitorWidget(QWidget):
         self.warn_flattree.resizeColumnToContents(0)
         self.err_flattree.resizeColumnToContents(0)
 
+        self._message_updated_processing = False
+
+    @Slot()
+    def queue_updated(self):
+        '''
+        This method just calls _signal_queue_updated in 'best effort' manner.
+        This method should be called by signal with DirectConnection.
+        '''
+        if self._queue_updated_processing:
+            return
+        self._queue_updated_processing = True
+        self._queue_updated.emit()
+
+    @Slot()
+    def _signal_queue_updated(self):
+        # update timeline pane
+        # collect worst status levels for each history
+        levels = [max([s.level for s in s.values()]) for s in self._timeline]
+        self._timeline_pane.set_levels(levels)
+        self._timeline_pane.redraw.emit()
+        self._queue_updated_processing = False
+
     def resizeEvent(self, evt):
         """Overridden from QWidget"""
         rospy.logdebug('RobotMonitorWidget resizeEvent')
-        if self.timeline_pane:
-            self.timeline_pane.redraw()
+        if self._timeline_pane:
+            self._timeline_pane.redraw.emit()
 
     @Slot(str)
     def _inspector_closed(self, name):
@@ -179,6 +219,7 @@ class RobotMonitorWidget(QWidget):
         if name in self._inspectors:
             del self._inspectors[name]
 
+    @Slot(QTreeWidgetItem, int)
     def _tree_clicked(self, item, column):
         """
         Slot to QTreeWidget.itemDoubleClicked
@@ -187,13 +228,14 @@ class RobotMonitorWidget(QWidget):
         :type column: int
         """
         rospy.logdebug('RobotMonitorWidget _tree_clicked col=%d', column)
+
         if item.name in self._inspectors:
             self._inspectors[item.name].activateWindow()
         else:
-            self._inspectors[item.name] = InspectorWindow(self, item.name,
-                    self._current_msg, self._timeline)
-            self._inspectors[item.name].closed.connect(self._inspector_closed)
-            self.message_updated.connect(self._inspectors[item.name].message_updated)
+            insp = InspectorWindow(None, item.name, self._timeline)
+            insp.show()
+            insp.closed.connect(self._inspector_closed)
+            self._inspectors[item.name] = insp
 
     def _update_message_state(self):
         """ Update the display if it's stale """
@@ -202,19 +244,19 @@ class RobotMonitorWidget(QWidget):
                 previous_stale_state = self._is_stale
                 self._is_stale = self._timeline.is_stale
 
-                time_diff = int(self._timeline.data_age())
+                time_diff = int(self._timeline.data_age)
 
                 msg_template = "Last message received %s %s ago"
                 if time_diff == 1:
                     msg = msg_template % (time_diff, "second")
                 else:
                     msg = msg_template % (time_diff, "seconds")
-                self.timeline_pane._msg_label.setText(msg)
+                self._timeline_pane._msg_label.setText(msg)
                 if previous_stale_state != self._is_stale:
                     self._update_background_color()
             else:
                 # no messages received yet
-                self.timeline_pane._msg_label.setText("No messages received")
+                self._timeline_pane._msg_label.setText("No messages received")
 
     def _update_background_color(self):
         """ Update the background color based on staleness """
