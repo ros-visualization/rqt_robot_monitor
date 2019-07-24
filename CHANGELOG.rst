@@ -2,6 +2,11 @@
 Changelog for package rqt_robot_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.9 (2019-07-24)
+-----------
+* refactored code and made signaling more efficient
+* stale messages appear now in the error pane
+
 0.5.8 (2017-09-26)
 ------------------
 * Fix apparent threading bug in timeline_view (`#5 <https://github.com/ros-visualization/rqt_robot_monitor/pull/5>`_)
