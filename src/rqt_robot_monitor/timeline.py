@@ -36,6 +36,7 @@ from collections import deque
 from python_qt_binding.QtCore import Signal, Slot, QObject
 
 import rospy
+import threading
 
 from diagnostic_msgs.msg import DiagnosticArray
 
@@ -52,6 +53,7 @@ class Timeline(QObject):
 
     def __init__(self, topic, topic_type, count=30):
         super(Timeline, self).__init__()
+        self._mutex = threading.RLock()
         self._queue = deque(maxlen=count)
         self._count = count
         self._current_index = -1 # rightmost item
@@ -82,21 +84,23 @@ class Timeline(QObject):
         from a button or checkbox
         """
         if pause != self.paused:
-            if pause:
-                self._paused_queue = deque(self._queue, self._queue.maxlen)
-            else:
-                self._queue = self._paused_queue
-                self._paused_queue = None
+            with self._mutex:
+                if pause:
+                    self._paused_queue = deque(self._queue, self._queue.maxlen)
+                else:
+                    self._queue = self._paused_queue
+                    self._paused_queue = None
 
-                # update pointer to latest message
-                self._current_index = -1
-                self.message_updated.emit(self._queue[self.position])
-            self.pause_changed.emit(pause)
+                    # update pointer to latest message
+                    self._current_index = -1
+                    self.message_updated.emit(self._queue[self.position])
+                self.pause_changed.emit(pause)
 
     @property
     def paused(self):
         """ True if this timeline is paused """
-        return self._paused_queue is not None
+        with self._mutex:
+            return self._paused_queue is not None
 
     def callback(self, msg):
         """
@@ -114,13 +118,14 @@ class Timeline(QObject):
         self._last_message_time = rospy.get_time()
         dic = {status.name: status for status in msg.status}
 
-        if self.paused:
-            self._paused_queue.append(dic)
-        else:
-            self._queue.append(dic)
-            self.queue_updated.emit()
-            if self.position == -1:
-                self.message_updated.emit(dic)
+        with self._mutex:
+            if self.paused:
+                self._paused_queue.append(dic)
+            else:
+                self._queue.append(dic)
+                self.queue_updated.emit()
+                if self.position == -1:
+                    self.message_updated.emit(dic)
 
     @property
     def has_messages(self):
@@ -128,7 +133,8 @@ class Timeline(QObject):
         True if this timeline has received any messages.
         False if no messages have been received yet
         """
-        return len(self._queue) > 0
+        with self._mutex:
+            return len(self._queue) > 0
 
     @property
     def data_age(self):
@@ -145,21 +151,23 @@ class Timeline(QObject):
     @property
     def position(self):
         index = self._current_index
-        while index < -1:
-            index = len(self._queue) + index
-        if index == len(self._queue) - 1:
-            index = -1
+        with self._mutex:
+            while index < -1:
+                index = len(self._queue) + index
+            if index == len(self._queue) - 1:
+                index = -1
         return index
 
     @position.setter
     def position(self, index):
-        max_index = len(self._queue) - 1
-        min_index = -len(self._queue)
-        index = min(index, max_index)
-        index = max(index, min_index)
-        if index != self._current_index or self._current_index == -1:
-            self._current_index = index
-            self.message_updated.emit(self._queue[index])
+        with self._mutex:
+            max_index = len(self._queue) - 1
+            min_index = -len(self._queue)
+            index = min(index, max_index)
+            index = max(index, min_index)
+            if index != self._current_index or self._current_index == -1:
+                self._current_index = index
+                self.message_updated.emit(self._queue[index])
 
     @Slot(int)
     def set_position(self, position):
@@ -167,14 +175,21 @@ class Timeline(QObject):
         self.position_changed.emit(position)
 
     def get_current_status_by_name(self, name):
-        return self._queue[self.position][name]
+        with self._mutex:
+            return self._queue[self.position][name]
 
     def get_all_status_by_name(self, name):
-        return [status[name] for status in list(self._queue)]
+        with self._mutex:
+            try:
+                return [status[name] for status in list(self._queue)]
+            except:
+                return None
 
     def __len__(self):
-        return len(self._queue)
+        with self._mutex:
+            return len(self._queue)
 
     def __iter__(self):
-        for msg in list(self._queue):
-            yield msg
+        with self._mutex:
+            for msg in list(self._queue):
+                yield msg
