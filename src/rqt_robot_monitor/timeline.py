@@ -70,7 +70,7 @@ class Timeline(QObject):
         Turn off this Timeline
         Internally, this just shuts down the subscriber
         """
-        self._subscriber.unregister()
+        self._subscriber.destroy()
 
     @Slot(bool)
     def set_paused(self, pause):
@@ -138,12 +138,12 @@ class Timeline(QObject):
         """ Get the age (in seconds) of the most recent diagnostic message """
         current_time = self._node.get_clock().now()
         time_diff = current_time - self._last_message_time
-        return time_diff
+        return (time_diff.nanoseconds / 1e9)
 
     @property
     def is_stale(self):
-        """ True is this timeline is stale. """
-        return self.data_age > 10.0
+        """ True if this timeline is stale. """
+        return self.data_age > 10e9
 
     @property
     def position(self):

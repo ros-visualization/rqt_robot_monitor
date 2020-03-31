@@ -46,15 +46,27 @@ _OK_ICON = QIcon.fromTheme('emblem-default')
 # Added following this QA thread http://goo.gl/83tVZ
 _STALE_ICON = QIcon.fromTheme('dialog-question')
 
-_LEVEL_TO_ICON = {0: _OK_ICON, 1: _WARN_ICON, 2: _ERR_ICON, 3: _STALE_ICON}
 
-_LEVEL_TO_COLOR = {0: QColor(85, 178, 76),  # green
-                   1: QColor(222, 213, 17),  # yellow
-                   2: QColor(178, 23, 46),  # red
-                   3: QColor(40, 23, 176)   # blue
-                   }
+_LEVEL_TO_ICON = {
+    bytes([0]): _OK_ICON,
+    bytes([1]): _WARN_ICON,
+    bytes([2]): _ERR_ICON,
+    bytes([3]): _STALE_ICON
+}
 
-_LEVEL_TO_TEXT = {0: "OK", 1: "WARNING", 2: "ERROR", 3: "STALE"}
+_LEVEL_TO_COLOR = {
+    bytes([0]): QColor(85, 178, 76),  # green
+    bytes([1]): QColor(222, 213, 17),  # yellow
+    bytes([2]): QColor(178, 23, 46),  # red
+    bytes([3]): QColor(40, 23, 176)   # blue
+}
+
+_LEVEL_TO_TEXT = {
+    bytes([0]): "OK",
+    bytes([1]): "WARNING",
+    bytes([2]): "ERROR",
+    bytes([3]): "STALE"
+}
 
 
 def level_to_icon(level):
@@ -75,7 +87,7 @@ def level_to_text(level):
     if level in _LEVEL_TO_TEXT:
         return _LEVEL_TO_TEXT[level]
     else:
-        return "UNKNOWN(%d)" % (level)
+        return f'UNKNOWN({level})'
 
 
 def get_resource_name(status_name):

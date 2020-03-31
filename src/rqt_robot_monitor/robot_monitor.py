@@ -228,7 +228,7 @@ class RobotMonitorWidget(QWidget):
         :type item: QTreeWidgetItem
         :type column: int
         """
-        self._node.get_logger().debug('RobotMonitorWidget _tree_clicked col=%d', column)
+        self._node.get_logger().debug(f'RobotMonitorWidget _tree_clicked col={column}')
 
         if item.name in self._inspectors:
             self._inspectors[item.name].activateWindow()
