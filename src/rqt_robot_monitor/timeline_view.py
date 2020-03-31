@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+#
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2012, Willow Garage, Inc.
@@ -32,17 +34,14 @@
 #
 # Author: Isaac Saito, Ze'ev Klapow, Austin Hendrix
 
-from math import floor
-from collections import deque
-import rospy
+import rqt_robot_monitor.util_robot_monitor as util
 
+from math import floor
+from diagnostic_msgs.msg import DiagnosticStatus
 from python_qt_binding.QtCore import QPointF, Signal, Slot
 from python_qt_binding.QtGui import QColor, QIcon
 from python_qt_binding.QtWidgets import QGraphicsPixmapItem, QGraphicsView, \
     QGraphicsScene
-
-import rqt_robot_monitor.util_robot_monitor as util
-from diagnostic_msgs.msg import DiagnosticStatus
 
 
 class TimelineView(QGraphicsView):
@@ -125,7 +124,6 @@ class TimelineView(QGraphicsView):
         :param xpos: Marker index
         """
         if self._levels is None:
-            rospy.logwarn('Called set_marker_pos before set_levels')
             return
 
         if xpos == -1:
@@ -182,7 +180,7 @@ class TimelineView(QGraphicsView):
 
         # update the limits
         self._min = 0
-        self._max = len(self._levels)-1
+        self._max = len(self._levels) - 1
 
         self._scene.clear()
 
@@ -226,6 +224,6 @@ class TimelineView(QGraphicsView):
     def _instantiate_tl_icon(self):
         timeline_marker_icon = QIcon.fromTheme('system-search')
         timeline_marker_icon_pixmap = timeline_marker_icon.pixmap(
-                                                self._timeline_marker_width,
-                                                self._timeline_marker_height)
+            self._timeline_marker_width,
+            self._timeline_marker_height)
         return QGraphicsPixmapItem(timeline_marker_icon_pixmap)

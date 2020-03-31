@@ -1,20 +1,15 @@
-<package>
+<package format="3">
   <name>rqt_robot_monitor</name>
   <version>0.5.9</version>
-  <description>rqt_robot_monitor displays diagnostics_agg topics messages that
-   are published by <a href = "http://www.ros.org/wiki/diagnostic_aggregator">diagnostic_aggregator</a>.
-   rqt_robot_monitor is a direct port to rqt of
-   <a href = "http://www.ros.org/wiki/robot_monitor">robot_monitor</a>. All
-   diagnostics are fall into one of three tree panes depending on the status of
-   diagnostics (normal, warning, error/stale). Status are shown in trees to
-   represent their hierarchy. Worse status dominates the higher level status.<br />
-   <ul>
-    Ex. 'Computer' category has 3 sub devices. 2 are green but 1 is error. Then
-        'Computer' becomes error.
-   </ul>
-  You can look at the detail of each status by double-clicking the tree nodes.<br />
+  <description>rqt_robot_monitor displays diagnostics_agg topics messages that are published by
+    <a href="http://www.ros.org/wiki/diagnostic_aggregator">diagnostic_aggregator</a>. rqt_robot_monitor is a direct port to rqt of
+    <a href="http://www.ros.org/wiki/robot_monitor">robot_monitor</a>. All diagnostics are fall into one of three tree panes depending on the status of diagnostics (normal, warning, error/stale). Status are shown in trees to represent their hierarchy. Worse status dominates the higher level status.<br/>
+    <ul>
+      Ex. 'Computer' category has 3 sub devices. 2 are green but 1 is error. Then 'Computer' becomes error.
+    </ul>
+    You can look at the detail of each status by double-clicking the tree nodes.<br/>
 
-  Currently re-usable API to other pkgs are not explicitly provided.
+    Currently re-usable API to other pkgs are not explicitly provided.
   </description>
   <maintainer email="ablasdel@gmail.com">Aaron Blasdel</maintainer>
   <maintainer email="arne.hitzmann@gmail.com">Arne Hitzmann</maintainer>
@@ -32,21 +27,18 @@
   <author>Kevin Watts</author>
   <author>Josh Faust</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <run_depend>diagnostic_msgs</run_depend>
-  <run_depend version_gte="0.2.19">python_qt_binding</run_depend>
-  <run_depend>python-rospkg</run_depend>
-  <run_depend>qt_gui</run_depend>
-  <run_depend>qt_gui_py_common</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>rqt_py_common</run_depend>
-  <run_depend>rqt_gui</run_depend>
-  <run_depend>rqt_gui_py</run_depend>
-  <run_depend>rqt_bag</run_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>diagnostic_msgs</exec_depend>
+  <exec_depend>rqt_gui</exec_depend>
+  <exec_depend>rqt_gui_py</exec_depend>
+  <exec_depend>rqt_py_common</exec_depend>
 
   <export>
-    <rqt_gui plugin="${prefix}/plugin.xml" />
-    <rqt_bag plugin="${prefix}/bag_plugin.xml" />
+    <architecture_independent/>
+    <rqt_gui plugin="${prefix}/plugin.xml"/>
+    <rqt_bag plugin="${prefix}/bag_plugin.xml"/>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

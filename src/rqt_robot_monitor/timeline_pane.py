@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+#
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2012, Willow Garage, Inc.
@@ -37,10 +39,7 @@ import os
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Signal, Slot
 from python_qt_binding.QtWidgets import QWidget
-import rospy
-import rospkg
-
-from rqt_robot_monitor.timeline import Timeline
+from ament_index_python.packages import get_package_share_directory
 
 
 class TimelinePane(QWidget):
@@ -62,8 +61,7 @@ class TimelinePane(QWidget):
         """
         super(TimelinePane, self).__init__(parent=parent)
 
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_robot_monitor'),
+        ui_file = os.path.join(get_package_share_directory('rqt_robot_monitor'),
                                'resource',
                                'timelinepane.ui')
         loadUi(ui_file, self)

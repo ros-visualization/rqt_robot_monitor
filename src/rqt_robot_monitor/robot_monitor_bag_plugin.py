@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Software License Agreement (BSD License)
 #
@@ -35,11 +35,11 @@
 # Author: Austin Hendrix
 
 
-from rqt_bag.plugins.plugin import Plugin
 from rqt_bag import TopicMessageView
-
+from rqt_bag.plugins.plugin import Plugin
 from rqt_robot_monitor.robot_monitor import RobotMonitorWidget
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
+
 
 class RobotMonitorBagPlugin(Plugin):
     def __init__(self):
@@ -54,12 +54,13 @@ class RobotMonitorBagPlugin(Plugin):
     def get_message_types(self):
         return ['diagnostic_msgs/DiagnosticArray']
 
+
 class RobotMonitorBagView(TopicMessageView):
     name = 'Diagnostics Viewer'
 
     def __init__(self, timeline, parent, topic):
         super(RobotMonitorBagView, self).__init__(timeline, parent, topic)
-        
+
         self._widget = RobotMonitorWidget(parent)
         parent.layout().addWidget(self._widget)
 

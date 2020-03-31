@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+#
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2014, Austin Hendrix
@@ -32,13 +34,10 @@
 #
 # Author: Austin Hendrix
 
+
+import threading
 from collections import deque
 from python_qt_binding.QtCore import Signal, Slot, QObject
-
-import rospy
-import threading
-
-from diagnostic_msgs.msg import DiagnosticArray
 
 
 class Timeline(QObject):
@@ -51,22 +50,20 @@ class Timeline(QObject):
     pause_changed = Signal(bool)
     position_changed = Signal(int)
 
-    def __init__(self, topic, topic_type, count=30):
+    def __init__(self, node, topic, topic_type, count=30):
         super(Timeline, self).__init__()
         self._mutex = threading.RLock()
+        self._node = node
         self._queue = deque(maxlen=count)
         self._count = count
-        self._current_index = -1 # rightmost item
+        self._current_index = -1  # rightmost item
 
         # the paused queue is a backup copy of the queue that is updated with
         # new messages while the timeline is paused, so that new messages and
         # new history are not lost
         self._paused_queue = None
-
         self._last_message_time = 0
-
-        self._subscriber = rospy.Subscriber(topic, topic_type, self.callback,
-                                            queue_size=10)
+        self._subscriber = self._node.create_subscription(topic_type, topic, self.callback, 1)
 
     def shutdown(self):
         """
@@ -115,7 +112,7 @@ class Timeline(QObject):
         :type msg: Either DiagnosticArray or DiagnosticsStatus. Can be
                    determined by __init__'s arg "msg_callback".
         """
-        self._last_message_time = rospy.get_time()
+        self._last_message_time = self._node.get_clock().now()
         dic = {status.name: status for status in msg.status}
 
         with self._mutex:
@@ -139,7 +136,7 @@ class Timeline(QObject):
     @property
     def data_age(self):
         """ Get the age (in seconds) of the most recent diagnostic message """
-        current_time = rospy.get_time()
+        current_time = self._node.get_clock().now()
         time_diff = current_time - self._last_message_time
         return time_diff
 
@@ -182,7 +179,7 @@ class Timeline(QObject):
         with self._mutex:
             try:
                 return [status[name] for status in list(self._queue)]
-            except:
+            except BaseException:
                 return None
 
     def __len__(self):

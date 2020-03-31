@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+#
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2012, Willow Garage, Inc.
@@ -32,15 +34,11 @@
 #
 # Author: Isaac Saito, Ze'ev Klapow, Austin Hendrix
 
+
 from python_qt_binding.QtCore import Qt, Signal, Slot
-from python_qt_binding.QtWidgets import QPushButton, QTextEdit, QVBoxLayout, QWidget
-import rospy
-
-from rqt_robot_monitor.status_snapshot import StatusSnapshot, level_to_text
 from rqt_robot_monitor.timeline_pane import TimelinePane
-import rqt_robot_monitor.util_robot_monitor as util
-
-from diagnostic_msgs.msg import DiagnosticArray
+from rqt_robot_monitor.status_snapshot import StatusSnapshot
+from python_qt_binding.QtWidgets import QPushButton, QVBoxLayout, QWidget
 
 
 class InspectorWindow(QWidget):
@@ -53,7 +51,7 @@ class InspectorWindow(QWidget):
         :param name: Name of inspecting diagnostic status
         :param timeline: Timeline object from which a status is fetched
         """
-        #TODO(Isaac) UI construction that currently is done in this method,
+        # TODO(Isaac) UI construction that currently is done in this method,
         #            needs to be done in .ui file.
         super(InspectorWindow, self).__init__(parent=parent)
         self.setWindowTitle(name)
@@ -142,11 +140,10 @@ class InspectorWindow(QWidget):
 
     @Slot(dict)
     def _signal_message_updated(self, status):
-        rospy.logdebug('InspectorWin message_updated')
 
         try:
             status = status[self._name]
-        except:
+        except BaseException:
             return
 
         scroll_value = self.disp.verticalScrollBar().value()

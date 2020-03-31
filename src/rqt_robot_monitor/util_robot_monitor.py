@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+#
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2012, Willow Garage, Inc.
@@ -32,9 +34,8 @@
 #
 # Author: Isaac Saito, Ze'ev Klapow, Austin Hendrix
 
-from diagnostic_msgs.msg import DiagnosticStatus
+
 from python_qt_binding.QtGui import QColor, QIcon
-import rospy
 
 # TODO: Utils and common configs are mixed in this class.
 
@@ -48,12 +49,13 @@ _STALE_ICON = QIcon.fromTheme('dialog-question')
 _LEVEL_TO_ICON = {0: _OK_ICON, 1: _WARN_ICON, 2: _ERR_ICON, 3: _STALE_ICON}
 
 _LEVEL_TO_COLOR = {0: QColor(85, 178, 76),  # green
-                   1: QColor(222, 213, 17), # yellow
+                   1: QColor(222, 213, 17),  # yellow
                    2: QColor(178, 23, 46),  # red
                    3: QColor(40, 23, 176)   # blue
                    }
 
-_LEVEL_TO_TEXT = { 0: "OK", 1: "WARNING", 2: "ERROR", 3: "STALE" }
+_LEVEL_TO_TEXT = {0: "OK", 1: "WARNING", 2: "ERROR", 3: "STALE"}
+
 
 def level_to_icon(level):
     if level in _LEVEL_TO_ICON:
@@ -61,17 +63,20 @@ def level_to_icon(level):
     else:
         return _ERR_ICON
 
+
 def level_to_color(level):
     if level in _LEVEL_TO_COLOR:
         return _LEVEL_TO_COLOR[level]
     else:
         return _LEVEL_TO_COLOR[2]
 
+
 def level_to_text(level):
     if level in _LEVEL_TO_TEXT:
         return _LEVEL_TO_TEXT[level]
     else:
-        return "UNKNOWN(%d)" % ( level )
+        return "UNKNOWN(%d)" % (level)
+
 
 def get_resource_name(status_name):
     """
@@ -82,8 +87,8 @@ def get_resource_name(status_name):
     :rtype: str
     """
     name = status_name.split('/')[-1]
-    rospy.logdebug(' get_resource_name name = %s', name)
     return name
+
 
 def get_color_for_message(msg):
     """
@@ -93,7 +98,6 @@ def get_color_for_message(msg):
     level = 0
     min_level = 255
 
-    lookup = {}
     for status in msg.status:
         if (status.level > level):
             level = status.level
@@ -104,8 +108,8 @@ def get_color_for_message(msg):
     if (level > 2 and min_level <= 2):
         level = 2
 
-    rospy.logdebug(' get_color_for_message color lv=%d', level)
     return level_to_color(level)
+
 
 def get_status_by_name(msg, name):
     for status in msg.status:
