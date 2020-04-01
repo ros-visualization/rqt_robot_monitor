@@ -1,4 +1,4 @@
-<package>
+<package format="3">
   <name>rqt_robot_monitor</name>
   <version>0.5.9</version>
   <description>rqt_robot_monitor displays diagnostics_agg topics messages that
@@ -32,21 +32,25 @@
   <author>Kevin Watts</author>
   <author>Josh Faust</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <!-- <buildtool_depend>catkin</buildtool_depend> -->
+  <buildtool_depend>ament_python</buildtool_depend>
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
 
-  <run_depend>diagnostic_msgs</run_depend>
-  <run_depend version_gte="0.2.19">python_qt_binding</run_depend>
-  <run_depend>python-rospkg</run_depend>
-  <run_depend>qt_gui</run_depend>
-  <run_depend>qt_gui_py_common</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>rqt_py_common</run_depend>
-  <run_depend>rqt_gui</run_depend>
-  <run_depend>rqt_gui_py</run_depend>
-  <run_depend>rqt_bag</run_depend>
+  <exec_depend>diagnostic_msgs</exec_depend>
+  <exec_depend version_gte="0.2.19">python_qt_binding</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-rospkg</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-rospkg</exec_depend>
+  <exec_depend>qt_gui</exec_depend>
+  <exec_depend>qt_gui_py_common</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>rqt_py_common</exec_depend>
+  <exec_depend>rqt_gui</exec_depend>
+  <exec_depend>rqt_gui_py</exec_depend>
+  <exec_depend>rqt_bag</exec_depend>
 
   <export>
     <rqt_gui plugin="${prefix}/plugin.xml" />
     <rqt_bag plugin="${prefix}/bag_plugin.xml" />
+    <build_type>ament_python</build_type>
   </export>
 </package>
