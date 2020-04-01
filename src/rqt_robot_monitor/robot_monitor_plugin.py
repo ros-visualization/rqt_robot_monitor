@@ -46,7 +46,7 @@ class RobotMonitorPlugin(Plugin):
         """
         super(RobotMonitorPlugin, self).__init__(context)
         assert hasattr(context, 'node'), 'Context does not have a node.'
-        self._robot_monitor = RobotMonitorWidget(context, 'diagnostics')
+        self._robot_monitor = RobotMonitorWidget(context, 'diagnostics_agg')
         if context.serial_number() > 1:
             self._robot_monitor.setWindowTitle(f"{self._robot_monitor.windowTitle()} ({context.serial_number()})")
         context.add_widget(self._robot_monitor)

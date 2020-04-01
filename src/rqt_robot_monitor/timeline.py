@@ -143,7 +143,7 @@ class Timeline(QObject):
     @property
     def is_stale(self):
         """ True if this timeline is stale. """
-        return self.data_age > 10e9
+        return self.data_age > 10
 
     @property
     def position(self):
