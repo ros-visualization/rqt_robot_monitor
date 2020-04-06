@@ -53,7 +53,7 @@ setup(
     tests_require = ['pytest'],
     entry_points = {
         'console_scripts': [
-            'rqt_robo_monitor = rqt_robot_monitor.robot_monitor:main'
+            'rqt_robot_monitor = rqt_robot_monitor.robot_monitor:main'
         ]
     }
 
