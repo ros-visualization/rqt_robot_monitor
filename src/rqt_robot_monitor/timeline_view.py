@@ -65,7 +65,6 @@ class TimelineView(QGraphicsView):
         super(TimelineView, self).__init__(parent=parent)
         self._timeline_marker = QIcon.fromTheme('system-search')
 
-        rclpy.init()
         self._log_node = rclpy.create_node('timeline_log_node')
 
         self._min = 0

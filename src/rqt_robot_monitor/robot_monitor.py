@@ -32,7 +32,7 @@
 #
 # Author: Isaac Saito, Ze'ev Klapow, Austin Hendrix
 
-import os
+import os, sys
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -48,6 +48,8 @@ from rqt_robot_monitor.status_item import StatusItem
 from rqt_robot_monitor.timeline_pane import TimelinePane
 from rqt_robot_monitor.timeline import Timeline
 import rqt_robot_monitor.util_robot_monitor as util
+
+from rqt_gui.main import Main
 
 
 class RobotMonitorWidget(QWidget):
@@ -80,7 +82,6 @@ class RobotMonitorWidget(QWidget):
                                'robotmonitor_mainwidget.ui')
         loadUi(ui_file, self)
 
-        rclpy.init()
         self._log_node = rclpy.create_node('robot_monitor_log_node')
 
         obj_name = 'Robot Monitor'
@@ -305,3 +306,12 @@ class RobotMonitorWidget(QWidget):
         else:
             self.splitter.setSizes([100, 100, 200])
         # TODO(ahendrix): restore inspector windows
+
+def main(args=None):
+    main_obj = Main()
+    sys.exit(
+        main_obj.main(
+            sys.argv,
+            standalone='rqt_robot_monitor.robot_monitor_plugin.RobotMonitorPlugin'
+        )
+    )
