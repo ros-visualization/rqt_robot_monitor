@@ -34,7 +34,7 @@
 
 from diagnostic_msgs.msg import DiagnosticStatus
 from python_qt_binding.QtGui import QColor, QIcon
-import rospy
+import rclpy
 
 # TODO: Utils and common configs are mixed in this class.
 
@@ -82,7 +82,7 @@ def get_resource_name(status_name):
     :rtype: str
     """
     name = status_name.split('/')[-1]
-    rospy.logdebug(' get_resource_name name = %s', name)
+    # rospy.logdebug(' get_resource_name name = %s', name)
     return name
 
 def get_color_for_message(msg):
@@ -104,7 +104,7 @@ def get_color_for_message(msg):
     if (level > 2 and min_level <= 2):
         level = 2
 
-    rospy.logdebug(' get_color_for_message color lv=%d', level)
+    # rospy.logdebug(' get_color_for_message color lv=%d', level)
     return level_to_color(level)
 
 def get_status_by_name(msg, name):

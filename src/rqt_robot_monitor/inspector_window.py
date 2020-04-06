@@ -34,7 +34,7 @@
 
 from python_qt_binding.QtCore import Qt, Signal, Slot
 from python_qt_binding.QtWidgets import QPushButton, QTextEdit, QVBoxLayout, QWidget
-import rospy
+import rclpy
 
 from rqt_robot_monitor.status_snapshot import StatusSnapshot, level_to_text
 from rqt_robot_monitor.timeline_pane import TimelinePane
