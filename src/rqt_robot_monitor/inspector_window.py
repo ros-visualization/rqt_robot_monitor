@@ -142,7 +142,7 @@ class InspectorWindow(QWidget):
 
     @Slot(dict)
     def _signal_message_updated(self, status):
-        rospy.logdebug('InspectorWin message_updated')
+        # rospy.logdebug('InspectorWin message_updated')
 
         try:
             status = status[self._name]
