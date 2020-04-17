@@ -41,7 +41,7 @@ import rclpy
 
 from ament_index_python.packages import get_package_share_directory
 
-from rqt_robot_monitor.timeline import Timeline
+from .timeline import Timeline
 
 
 class TimelinePane(QWidget):

@@ -41,7 +41,7 @@ from python_qt_binding.QtGui import QColor, QIcon
 from python_qt_binding.QtWidgets import QGraphicsPixmapItem, QGraphicsView, \
     QGraphicsScene
 
-import rqt_robot_monitor.util_robot_monitor as util
+from . import util_robot_monitor as util
 from diagnostic_msgs.msg import DiagnosticStatus
 
 

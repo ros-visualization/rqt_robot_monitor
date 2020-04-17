@@ -36,9 +36,9 @@ from python_qt_binding.QtCore import Qt, Signal, Slot
 from python_qt_binding.QtWidgets import QPushButton, QTextEdit, QVBoxLayout, QWidget
 import rclpy
 
-from rqt_robot_monitor.status_snapshot import StatusSnapshot, level_to_text
-from rqt_robot_monitor.timeline_pane import TimelinePane
-import rqt_robot_monitor.util_robot_monitor as util
+from .status_snapshot import StatusSnapshot, level_to_text
+from .timeline_pane import TimelinePane
+from . import util_robot_monitor as util
 
 from diagnostic_msgs.msg import DiagnosticArray
 

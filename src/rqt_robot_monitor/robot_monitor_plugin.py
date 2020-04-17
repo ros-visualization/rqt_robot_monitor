@@ -34,7 +34,7 @@
 
 from qt_gui.plugin import Plugin
 
-from rqt_robot_monitor.robot_monitor import RobotMonitorWidget
+from .robot_monitor import RobotMonitorWidget
 
 
 class RobotMonitorPlugin(Plugin):
