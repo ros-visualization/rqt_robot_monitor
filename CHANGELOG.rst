@@ -2,6 +2,11 @@
 Changelog for package rqt_robot_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.10 (2020-04-19)
+-------------------
+* updated package to format 3
+* added mutex and checks to fix (`#13 <https://github.com/ros-visualization/rqt_robot_monitor/issues/13>`_)
+
 0.5.9 (2019-07-24)
 -----------
 * refactored code and made signaling more efficient
