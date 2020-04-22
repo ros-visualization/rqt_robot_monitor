@@ -66,14 +66,19 @@ class Timeline(QObject):
         self._last_message_time = 0
 
         self._node = rclpy.create_node('timeline_subscriber')
-        self._subscriber = self._node.create_subscription(topic_type, topic, self.callback,
-                                                            qos_profile= 10)
+        self._subscriber = self._node.create_subscription(topic_type,
+                                                          topic,
+                                                          self.callback,
+                                                          qos_profile= 10)
+        
+        self._node.get_logger().debug("Timeline subscriber created with topic type {}, topic name {}".format(topic_type, topic))
 
     def shutdown(self):
         """
         Turn off this Timeline
         Internally, this just shuts down the subscriber
         """
+        self._node.get_logger().debug("Shutting down subscriber")
         self._subscriber.unregister()
 
     @Slot(bool)
@@ -116,6 +121,7 @@ class Timeline(QObject):
         :type msg: Either DiagnosticArray or DiagnosticsStatus. Can be
                    determined by __init__'s arg "msg_callback".
         """
+        self._node.get_logger().debug("Callback called")
         self._last_message_time = self._node.get_clock().now().seconds_nanoseconds()[0]
         dic = {status.name: status for status in msg.status}
 
