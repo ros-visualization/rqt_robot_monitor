@@ -71,7 +71,9 @@ class Timeline(QObject):
                                                           self.callback,
                                                           qos_profile= 10)
         
-        self._node.get_logger().debug("Timeline subscriber created with topic type {}, topic name {}".format(topic_type, topic))
+        self._node.get_logger().debug(
+            "Timeline subscriber created with topic type {}, topic name {}".format(
+                topic_type, topic))
 
     def shutdown(self):
         """
@@ -79,7 +81,8 @@ class Timeline(QObject):
         Internally, this just shuts down the subscriber
         """
         self._node.get_logger().debug("Shutting down subscriber")
-        self._subscriber.unregister()
+        self._node.destroy_subscription(self._subscriber)
+        self._subscriber = None
 
     @Slot(bool)
     def set_paused(self, pause):
@@ -89,6 +92,7 @@ class Timeline(QObject):
         This is generally intended to be connected to the status signal
         from a button or checkbox
         """
+        self._node.get_logger().debug("Pause status: {}".format(pause))
         if pause != self.paused:
             with self._mutex:
                 if pause:
