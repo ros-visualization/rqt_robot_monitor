@@ -37,10 +37,11 @@ import os
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Signal, Slot
 from python_qt_binding.QtWidgets import QWidget
-import rospy
-import rospkg
+import rclpy
 
-from rqt_robot_monitor.timeline import Timeline
+from ament_index_python.packages import get_package_share_directory
+
+from .timeline import Timeline
 
 
 class TimelinePane(QWidget):
@@ -62,8 +63,8 @@ class TimelinePane(QWidget):
         """
         super(TimelinePane, self).__init__(parent=parent)
 
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_robot_monitor'),
+        robot_share_directory = get_package_share_directory('rqt_robot_monitor')
+        ui_file = os.path.join(robot_share_directory,
                                'resource',
                                'timelinepane.ui')
         loadUi(ui_file, self)

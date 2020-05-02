@@ -35,7 +35,7 @@
 from collections import deque
 from python_qt_binding.QtCore import Signal, Slot, QObject
 
-import rospy
+import rclpy
 import threading
 
 from diagnostic_msgs.msg import DiagnosticArray
@@ -65,15 +65,24 @@ class Timeline(QObject):
 
         self._last_message_time = 0
 
-        self._subscriber = rospy.Subscriber(topic, topic_type, self.callback,
-                                            queue_size=10)
+        self._node = rclpy.create_node('timeline_subscriber')
+        self._subscriber = self._node.create_subscription(topic_type,
+                                                          topic,
+                                                          self.callback,
+                                                          qos_profile= 10)
+        
+        self._node.get_logger().debug(
+            "Timeline subscriber created with topic type {}, topic name {}".format(
+                topic_type, topic))
 
     def shutdown(self):
         """
         Turn off this Timeline
         Internally, this just shuts down the subscriber
         """
-        self._subscriber.unregister()
+        self._node.get_logger().debug("Shutting down subscriber")
+        self._node.destroy_subscription(self._subscriber)
+        self._subscriber = None
 
     @Slot(bool)
     def set_paused(self, pause):
@@ -83,6 +92,7 @@ class Timeline(QObject):
         This is generally intended to be connected to the status signal
         from a button or checkbox
         """
+        self._node.get_logger().debug("Pause status: {}".format(pause))
         if pause != self.paused:
             with self._mutex:
                 if pause:
@@ -115,7 +125,8 @@ class Timeline(QObject):
         :type msg: Either DiagnosticArray or DiagnosticsStatus. Can be
                    determined by __init__'s arg "msg_callback".
         """
-        self._last_message_time = rospy.get_time()
+        self._node.get_logger().debug("Callback called")
+        self._last_message_time = self._node.get_clock().now().seconds_nanoseconds()[0]
         dic = {status.name: status for status in msg.status}
 
         with self._mutex:
@@ -139,7 +150,8 @@ class Timeline(QObject):
     @property
     def data_age(self):
         """ Get the age (in seconds) of the most recent diagnostic message """
-        current_time = rospy.get_time()
+        # current_time = rospy.get_time()
+        current_time = self._node.get_clock().now().seconds_nanoseconds()[0]
         time_diff = current_time - self._last_message_time
         return time_diff
 

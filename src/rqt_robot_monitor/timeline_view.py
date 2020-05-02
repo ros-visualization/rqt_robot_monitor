@@ -34,14 +34,14 @@
 
 from math import floor
 from collections import deque
-import rospy
+import rclpy
 
 from python_qt_binding.QtCore import QPointF, Signal, Slot
 from python_qt_binding.QtGui import QColor, QIcon
 from python_qt_binding.QtWidgets import QGraphicsPixmapItem, QGraphicsView, \
     QGraphicsScene
 
-import rqt_robot_monitor.util_robot_monitor as util
+from . import util_robot_monitor as util
 from diagnostic_msgs.msg import DiagnosticStatus
 
 
@@ -64,6 +64,8 @@ class TimelineView(QGraphicsView):
 
         super(TimelineView, self).__init__(parent=parent)
         self._timeline_marker = QIcon.fromTheme('system-search')
+
+        self._log_node = rclpy.create_node('timeline_log_node')
 
         self._min = 0
         self._max = 0
@@ -125,7 +127,7 @@ class TimelineView(QGraphicsView):
         :param xpos: Marker index
         """
         if self._levels is None:
-            rospy.logwarn('Called set_marker_pos before set_levels')
+            self._log_node.get_logger().warn("Called set_marker_pos before set_levels")
             return
 
         if xpos == -1:

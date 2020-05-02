@@ -32,21 +32,24 @@
 #
 # Author: Isaac Saito, Ze'ev Klapow, Austin Hendrix
 
-import os
-import rospkg
+import os, sys
+
+from ament_index_python.packages import get_package_share_directory
 
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import QTimer, Signal, Qt, Slot
 from python_qt_binding.QtGui import QPalette
 from python_qt_binding.QtWidgets import QWidget, QTreeWidgetItem
-import rospy
+import rclpy
 
-from rqt_robot_monitor.inspector_window import InspectorWindow
-from rqt_robot_monitor.status_item import StatusItem
-from rqt_robot_monitor.timeline_pane import TimelinePane
-from rqt_robot_monitor.timeline import Timeline
-import rqt_robot_monitor.util_robot_monitor as util
+from .inspector_window import InspectorWindow
+from .status_item import StatusItem
+from .timeline_pane import TimelinePane
+from .timeline import Timeline
+from . import util_robot_monitor as util
+
+from rqt_gui.main import Main
 
 
 class RobotMonitorWidget(QWidget):
@@ -73,10 +76,13 @@ class RobotMonitorWidget(QWidget):
         """
 
         super(RobotMonitorWidget, self).__init__()
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_robot_monitor'), 'resource',
+
+        robot_share_dir = get_package_share_directory('rqt_robot_monitor')
+        ui_file = os.path.join(robot_share_dir, 'resource',
                                'robotmonitor_mainwidget.ui')
         loadUi(ui_file, self)
+
+        self._log_node = rclpy.create_node('robot_monitor_log_node')
 
         obj_name = 'Robot Monitor'
         self.setObjectName(obj_name)
@@ -209,7 +215,7 @@ class RobotMonitorWidget(QWidget):
 
     def resizeEvent(self, evt):
         """Overridden from QWidget"""
-        rospy.logdebug('RobotMonitorWidget resizeEvent')
+        self._log_node.get_logger().debug('RobotMonitorWidget resizeEvent')
         if self._timeline_pane:
             self._timeline_pane.redraw.emit()
 
@@ -227,7 +233,7 @@ class RobotMonitorWidget(QWidget):
         :type item: QTreeWidgetItem
         :type column: int
         """
-        rospy.logdebug('RobotMonitorWidget _tree_clicked col=%d', column)
+        self._log_node.get_logger().debug('RobotMonitorWidget _tree_clicked col={}'.format(column))
 
         if item.name in self._inspectors:
             self._inspectors[item.name].activateWindow()
@@ -240,6 +246,8 @@ class RobotMonitorWidget(QWidget):
     def _update_message_state(self):
         """ Update the display if it's stale """
         if self._timeline is not None:
+            # Spin the node to get messages
+            rclpy.spin_once(self._timeline._node)
             if self._timeline.has_messages:
                 previous_stale_state = self._is_stale
                 self._is_stale = self._timeline.is_stale
@@ -277,7 +285,7 @@ class RobotMonitorWidget(QWidget):
         This closes all the instances on all trees.
         Also unregisters ROS' subscriber, stops timer.
         """
-        rospy.logdebug('RobotMonitorWidget in shutdown')
+        self._log_node.get_logger().debug('RobotMonitorWidget in shutdown')
 
         names = self._inspectors.keys()
         for name in names:
@@ -300,3 +308,12 @@ class RobotMonitorWidget(QWidget):
         else:
             self.splitter.setSizes([100, 100, 200])
         # TODO(ahendrix): restore inspector windows
+
+def main(args=None):
+    main_obj = Main()
+    sys.exit(
+        main_obj.main(
+            sys.argv,
+            standalone='rqt_robot_monitor.robot_monitor_plugin.RobotMonitorPlugin'
+        )
+    )
