@@ -2,6 +2,10 @@
 Changelog for package rqt_robot_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.11 (2020-05-13)
+-------------------
+* add Python 3 conditional dependencies
+
 0.5.10 (2020-04-19)
 -------------------
 * updated package to format 3
