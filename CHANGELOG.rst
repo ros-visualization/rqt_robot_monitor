@@ -2,6 +2,11 @@
 Changelog for package rqt_robot_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.0 (2020-06-01)
+------------------
+* changed python(3)-rospkg dependency to python(3)-rospkg-modules
+* merged changes for ROS 2
+
 0.5.10 (2020-04-19)
 -------------------
 * updated package to format 3
