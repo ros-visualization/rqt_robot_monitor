@@ -2,6 +2,10 @@
 Changelog for package rqt_robot_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.12 (2020-06-02)
+-------------------
+* use catkin_install_python instead of install
+
 0.5.11 (2020-05-13)
 -------------------
 * add Python 3 conditional dependencies
