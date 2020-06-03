@@ -36,8 +36,6 @@
   <author>Kevin Watts</author>
   <author>Josh Faust</author>
 
-  <!-- <buildtool_depend>catkin</buildtool_depend> -->
-  <buildtool_depend>ament_python</buildtool_depend>
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
 
   <exec_depend>diagnostic_msgs</exec_depend>
