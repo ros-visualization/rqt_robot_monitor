@@ -45,15 +45,15 @@ _OK_ICON = QIcon.fromTheme('emblem-default')
 # Added following this QA thread http://goo.gl/83tVZ
 _STALE_ICON = QIcon.fromTheme('dialog-question')
 
-_LEVEL_TO_ICON = {0: _OK_ICON, 1: _WARN_ICON, 2: _ERR_ICON, 3: _STALE_ICON}
+_LEVEL_TO_ICON = {b'\x00': _OK_ICON, b'\x01': _WARN_ICON, b'\x02': _ERR_ICON, b'\x03': _STALE_ICON}
 
-_LEVEL_TO_COLOR = {0: QColor(85, 178, 76),  # green
-                   1: QColor(222, 213, 17), # yellow
-                   2: QColor(178, 23, 46),  # red
-                   3: QColor(40, 23, 176)   # blue
+_LEVEL_TO_COLOR = {b'\x00': QColor(85, 178, 76),  # green
+                   b'\x01': QColor(222, 213, 17), # yellow
+                   b'\x02': QColor(178, 23, 46),  # red
+                   b'\x03': QColor(40, 23, 176)   # blue
                    }
 
-_LEVEL_TO_TEXT = { 0: "OK", 1: "WARNING", 2: "ERROR", 3: "STALE" }
+_LEVEL_TO_TEXT = { b'\x00': "OK", b'\x01': "WARNING", b'\x02': "ERROR", b'\x03': "STALE" }
 
 def level_to_icon(level):
     if level in _LEVEL_TO_ICON:
