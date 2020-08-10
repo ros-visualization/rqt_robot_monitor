@@ -2,6 +2,10 @@
 Changelog for package rqt_robot_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.2 (2020-08-10)
+------------------
+* fix for changed data type of diagnostic level (`#26 <https://github.com/ros-visualization/rqt_robot_monitor/issues/26>`_) 
+
 1.0.1 (2020-06-11)
 ------------------
 * temporary remove the rqt_bag dependency and plugin (`#22 <https://github.com/ros-visualization/rqt_robot_monitor/issues/22>`_)
