@@ -290,7 +290,7 @@ class RobotMonitorWidget(QWidget):
         """
         self._log_node.get_logger().debug('RobotMonitorWidget in shutdown')
 
-        names = self._inspectors.keys()
+        names = list(self._inspectors.keys())
         for name in names:
             self._inspectors[name].close()
 
