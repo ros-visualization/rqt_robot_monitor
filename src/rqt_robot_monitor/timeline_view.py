@@ -136,7 +136,12 @@ class TimelineView(QGraphicsView):
         if xpos == -1:
             # stick to the latest when position is -1
             self._xpos_marker = -1
-            #self.position_changed.emit(None)
+            # check if we chose latest item
+            if self._last_marker_at != self._xpos_marker:
+                # update variable to check for change during next round
+                self._last_marker_at = self._xpos_marker
+                # emit change to all timeline_panes
+                self.position_changed.emit(self._xpos_marker)
             self.redraw.emit()
             return
 
