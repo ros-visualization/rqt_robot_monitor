@@ -69,7 +69,7 @@ class Timeline(QObject):
         self._subscriber = self._node.create_subscription(topic_type,
                                                           topic,
                                                           self.callback,
-                                                          qos_profile= 10)
+                                                          qos_profile=10)
         
         self._node.get_logger().debug(
             "Timeline subscriber created with topic type {}, topic name {}".format(
