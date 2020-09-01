@@ -91,9 +91,9 @@ class TimelinePane(QWidget):
 
     @Slot(list)
     def set_levels(self, levels):
-        '''
+        """
         :param levels: List of status levels
-        '''
+        """
         self._timeline_view.set_levels(levels)
 
     @Slot(int)

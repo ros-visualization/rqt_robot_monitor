@@ -135,10 +135,10 @@ class RobotMonitorWidget(QWidget):
 
     @Slot(dict)
     def message_updated(self, status):
-        '''
+        """
         This method just calls _signal_message_updated in 'best effort' manner.
         This method should be called by signal with DirectConnection.
-        '''
+        """
         if self._message_updated_processing:
             return
         self._message_updated_processing = True
@@ -216,8 +216,11 @@ class RobotMonitorWidget(QWidget):
     @Slot(str)
     def _inspector_closed(self, name):
         """ Called when an inspector window is closed """
-        if name in self._inspectors:
+        try:
+            self._inspectors[name].deleteLater()
             del self._inspectors[name]
+        except KeyError:
+            pass
 
     @Slot(QTreeWidgetItem, int)
     def _tree_clicked(self, item, column):
@@ -279,7 +282,7 @@ class RobotMonitorWidget(QWidget):
         """
         rospy.logdebug('RobotMonitorWidget in shutdown')
 
-        names = self._inspectors.keys()
+        names = list(self._inspectors.keys())
         for name in names:
             self._inspectors[name].close()
 
