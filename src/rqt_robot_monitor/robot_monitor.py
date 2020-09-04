@@ -141,10 +141,10 @@ class RobotMonitorWidget(QWidget):
 
     @Slot(dict)
     def message_updated(self, status):
-        '''
+        """
         This method just calls _signal_message_updated in 'best effort' manner.
         This method should be called by signal with DirectConnection.
-        '''
+        """
         if self._message_updated_processing:
             return
         self._message_updated_processing = True
@@ -195,10 +195,10 @@ class RobotMonitorWidget(QWidget):
 
     @Slot()
     def queue_updated(self):
-        '''
+        """
         This method just calls _signal_queue_updated in 'best effort' manner.
         This method should be called by signal with DirectConnection.
-        '''
+        """
         if self._queue_updated_processing:
             return
         self._queue_updated_processing = True
@@ -290,7 +290,7 @@ class RobotMonitorWidget(QWidget):
         """
         self._log_node.get_logger().debug('RobotMonitorWidget in shutdown')
 
-        names = self._inspectors.keys()
+        names = list(self._inspectors.keys())
         for name in names:
             self._inspectors[name].close()
 
@@ -311,6 +311,7 @@ class RobotMonitorWidget(QWidget):
         else:
             self.splitter.setSizes([100, 100, 200])
         # TODO(ahendrix): restore inspector windows
+
 
 def main(args=None):
     main_obj = Main()
