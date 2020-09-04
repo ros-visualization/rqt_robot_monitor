@@ -67,11 +67,11 @@ class TimelineView(QGraphicsView):
 
         self._min = 0
         self._max = 0
-        self._xpos_marker = 5
+        self._xpos_marker = -1
 
         self._timeline_marker_width = 15
         self._timeline_marker_height = 15
-        self._last_marker_at = 2
+        self._last_marker_at = -1
 
         self.setUpdatesEnabled(True)
         self._scene = QGraphicsScene(self)
@@ -115,7 +115,10 @@ class TimelineView(QGraphicsView):
         width = self.size().width()
         # determine value from mouse click
         width_cell = width / float(max(len(self._levels), 1))
-        return int(floor(x / width_cell))
+        position = int(floor(x / width_cell))
+        if position == len(self._levels) - 1:
+            return -1
+        return position
 
     @Slot(int)
     def set_marker_pos(self, xpos):
@@ -130,7 +133,13 @@ class TimelineView(QGraphicsView):
 
         if xpos == -1:
             # stick to the latest when position is -1
-            self._xpos_marker = xpos
+            self._xpos_marker = -1
+            # check if we chose latest item
+            if self._last_marker_at != self._xpos_marker:
+                # update variable to check for change during next round
+                self._last_marker_at = self._xpos_marker
+                # emit change to all timeline_panes
+                self.position_changed.emit(self._xpos_marker)
             self.redraw.emit()
             return
 
@@ -182,7 +191,7 @@ class TimelineView(QGraphicsView):
 
         # update the limits
         self._min = 0
-        self._max = len(self._levels)-1
+        self._max = len(self._levels) - 1
 
         self._scene.clear()
 
@@ -209,13 +218,17 @@ class TimelineView(QGraphicsView):
 
             self._scene.addRect(w * i, 0, w, h, QColor('white'), qcolor)
 
-        # Setting marker.
+        # Getting marker index.
         xpos_marker = self._xpos_marker
-        while xpos_marker < 0:
-            xpos_marker += len(self._levels)
-        xpos_marker = (xpos_marker * w +
+
+        # If marker is -1 for latest use (number_of_cells -1)
+        if xpos_marker == -1:
+            xpos_marker = len(self._levels) - 1
+
+        # Convert get horizontal pixel value of selected cell's center
+        xpos_marker_in_pixel = (xpos_marker * w +
                        (w / 2.0) - (self._timeline_marker_width / 2.0))
-        pos_marker = QPointF(xpos_marker, 0)
+        pos_marker = QPointF(xpos_marker_in_pixel, 0)
 
         # Need to instantiate marker everytime since it gets deleted
         # in every loop by scene.clear()
