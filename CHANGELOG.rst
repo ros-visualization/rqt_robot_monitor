@@ -2,6 +2,10 @@
 Changelog for package rqt_robot_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.13 (2020-09-07)
+-------------------
+* Fixed the functionality of the timeline_view
+
 0.5.12 (2020-06-02)
 -------------------
 * use catkin_install_python instead of install
