@@ -154,25 +154,60 @@ class RobotMonitorWidget(QWidget):
     def _signal_message_updated(self, status):
         """ DiagnosticArray message callback """
 
-        # Walk the status array and update the tree
-        for name, status in status.items():
-            # Compute path and walk to appropriate subtree
-            path = name.split('/')
-            if path[0] == '':
-                path = path[1:]
-            tmp_tree = self._tree
-            for p in path:
-                tmp_tree = tmp_tree[p]
-            tmp_tree.update(status, util.get_resource_name(name))
+        if self.alternative_view_checkBox.isChecked():
+            # Walk the status array and update the tree
+            for name, status in status.items():
+                # Compute path and walk to appropriate subtree
+                path = name.split('/')
+                tmp_tree = self._tree
+                tmp_err_tree = self._err_tree
+                tmp_warn_tree = self._warn_tree
+                if path[0] == '':
+                    path = path[1:]
+                tmp_tree.update(status, util.get_resource_name(name))
+                    #tmp_tree = tmp_tree['Robot']
+                    #tmp_tree.update(status, 'Robot')
 
-            # Check for warnings
-            if status.level == DiagnosticStatus.WARN:
-                self._warn_tree[name].update(status, name)
+                leaf = path[-1]
+                for i, p in enumerate(path):
+                    if p != '':
+                        # Check for warnings
+                        if status.level is DiagnosticStatus.WARN:
+                            tmp_warn_tree[p].update(status, p)
+                            tmp_warn_tree = tmp_warn_tree[p]
 
-            # Check for errors
-            if (status.level == DiagnosticStatus.ERROR or
-                status.level == DiagnosticStatus.STALE):
-                self._err_tree[name].update(status, name)
+                        tmp_tree = tmp_tree[p]
+                        tmp_err_tree = tmp_err_tree[p]
+
+                        if p == leaf:
+                            tmp_tree.update(status, p)
+
+                            # Check for errors
+                            if status.level in [DiagnosticStatus.ERROR, DiagnosticStatus.STALE]:
+                                tmp_err_tree.update(status, p)
+            self.err_flattree.expandAll()
+            self.warn_flattree.expandAll()
+        else:
+            # Walk the status array and update the tree
+            for name, status in status.items():
+                # Compute path and walk to appropriate subtree
+                path = name.split('/')
+                if path[0] == '':
+                    path = path[1:]
+                tmp_tree = self._tree
+                for p in path:
+                    tmp_tree = tmp_tree[p]
+                tmp_tree.update(status, util.get_resource_name(name))
+
+                # Check for warnings
+                if status.level == DiagnosticStatus.WARN:
+                    self._warn_tree[name].update(status, name)
+
+                # Check for errors
+                if status.level in [DiagnosticStatus.ERROR, DiagnosticStatus.STALE]:
+                    self._err_tree[name].update(status, name)
+
+
 
         # For any items in the tree that were not updated, remove them
         self._tree.prune()

@@ -19,6 +19,13 @@
     <number>0</number>
    </property>
    <item>
+    <widget class="QCheckBox" name="alternative_view_checkBox">
+      <property name="text">
+       <string>Alternative view</string>
+      </property>
+    </widget>
+    </item>
+    <item>
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
