@@ -285,7 +285,7 @@ class RobotMonitorWidget(QWidget):
         """ Update the display if it's stale """
         if self._timeline is not None:
             # Spin the node to get messages
-            rclpy.spin_once(self._timeline._node)
+            rclpy.spin_once(self._timeline._node, timeout_sec=0.1)
             if self._timeline.has_messages:
                 previous_stale_state = self._is_stale
                 self._is_stale = self._timeline.is_stale
