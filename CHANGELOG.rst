@@ -2,13 +2,18 @@
 Changelog for package rqt_robot_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.4 (2020-12-07)
+------------------
+* prevent freezing of gui if no aggregator is present, fixes `#31 <https://github.com/ros-visualization/rqt_robot_monitor/issues/31>`_
+* added alternative view of devices for treeview
+
 1.0.3 (2020-09-07)
 ------------------
 * Fixed the functionality of the timeline_view
 
 1.0.2 (2020-08-10)
 ------------------
-* fix for changed data type of diagnostic level (`#26 <https://github.com/ros-visualization/rqt_robot_monitor/issues/26>`_) 
+* fix for changed data type of diagnostic level (`#26 <https://github.com/ros-visualization/rqt_robot_monitor/issues/26>`_)
 
 1.0.1 (2020-06-11)
 ------------------
