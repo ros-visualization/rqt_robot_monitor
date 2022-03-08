@@ -44,7 +44,7 @@
        <bool>true</bool>
       </property>
       <property name="sortingEnabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <column>
        <property name="text">
@@ -68,7 +68,7 @@
        <bool>true</bool>
       </property>
       <property name="sortingEnabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <column>
        <property name="text">
