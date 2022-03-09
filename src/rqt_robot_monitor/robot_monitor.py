@@ -199,12 +199,12 @@ class RobotMonitorWidget(QWidget):
                     tmp_tree = tmp_tree[p]
                 tmp_tree.update(status, util.get_resource_name(name))
 
-                # Check for warnings
-                if status.level == DiagnosticStatus.WARN:
+                # Check for warnings, skip non-leaf elements
+                if status.level == DiagnosticStatus.WARN and status.message != "Warning":
                     self._warn_tree[name].update(status, name)
 
-                # Check for errors
-                if status.level in [DiagnosticStatus.ERROR, DiagnosticStatus.STALE]:
+                # Check for errors, skip non-leaf elements
+                if status.level in [DiagnosticStatus.ERROR, DiagnosticStatus.STALE] and status.message != "Error":
                     self._err_tree[name].update(status, name)
 
 
@@ -213,14 +213,6 @@ class RobotMonitorWidget(QWidget):
         self._tree.prune()
         self._warn_tree.prune()
         self._err_tree.prune()
-
-        # TODO(ahendrix): implement
-        # Insight: for any item that is not OK, it only provides additional
-        #          information if all of it's children are OK
-        #
-        #          otherwise, it's just an aggregation of its children
-        #          and doesn't provide any additional value when added to
-        #          the warning and error flat trees
 
         self.tree_all_devices.resizeColumnToContents(0)
         self.warn_flattree.resizeColumnToContents(0)
