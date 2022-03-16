@@ -2,6 +2,11 @@
 Changelog for package rqt_robot_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.14 (2022-03-16)
+-------------------
+* Improve error and warning lists by only showing leaf-elements
+* Backported alternative view.
+
 0.5.13 (2020-09-07)
 -------------------
 * Fixed the functionality of the timeline_view
