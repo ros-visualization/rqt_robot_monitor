@@ -19,6 +19,13 @@
     <number>0</number>
    </property>
    <item>
+    <widget class="QCheckBox" name="alternative_view_checkBox">
+      <property name="text">
+       <string>Alternative view</string>
+      </property>
+    </widget>
+    </item>
+    <item>
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -37,7 +44,7 @@
        <bool>true</bool>
       </property>
       <property name="sortingEnabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <column>
        <property name="text">
@@ -61,7 +68,7 @@
        <bool>true</bool>
       </property>
       <property name="sortingEnabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <column>
        <property name="text">
