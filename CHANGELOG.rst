@@ -2,6 +2,10 @@
 Changelog for package rqt_robot_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.5 (2022-03-16)
+------------------
+* Improve error and warning lists by only showing leaf-elements
+
 1.0.4 (2020-12-07)
 ------------------
 * prevent freezing of gui if no aggregator is present, fixes `#31 <https://github.com/ros-visualization/rqt_robot_monitor/issues/31>`_
