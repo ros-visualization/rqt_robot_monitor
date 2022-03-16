@@ -3,7 +3,7 @@
 from setuptools import setup
 
 package_name = 'rqt_robot_monitor'
-version = '1.0.4'
+version = '1.0.5'
 
 setup(
     name = package_name,
