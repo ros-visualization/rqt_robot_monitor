@@ -2,6 +2,10 @@
 Changelog for package rqt_robot_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.15 (2023-10-02)
+-------------------
+* Import setup from setuptools instead of distutils.core
+
 0.5.14 (2022-03-16)
 -------------------
 * Improve error and warning lists by only showing leaf-elements
