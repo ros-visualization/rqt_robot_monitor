@@ -22,9 +22,9 @@ setup(
     ],
     install_requires = ['setuptools'],
     zip_safe = True,
-    author = "Austin Hendrix, Isaac Saito, Ze'Ev Klapow, Josh Faust",
-    maintainer = "Aaron Blasdel, Arne Hitzmann, Austin Hendrix",
-    maintainer_email = "ablasdel@gmail.com, arne.hitzmann@gmail.com, namniart@gmail.com",
+    author = "Austin Hendrix, Isaac Saito, Ze'Ev Klapow, Josh Faust, Aaron Blasdel",
+    maintainer = "Arne Hitzmann, Austin Hendrix",
+    maintainer_email = "arne.hitzmann@gmail.com, namniart@gmail.com",
     keywords = ["ROS 2"],
     classifiers = [
         'Intended Audience :: Developers',
