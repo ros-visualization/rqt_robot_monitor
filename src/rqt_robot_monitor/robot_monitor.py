@@ -82,7 +82,7 @@ class RobotMonitorWidget(QWidget):
                                'robotmonitor_mainwidget.ui')
         loadUi(ui_file, self)
 
-        self._log_node = rclpy.create_node('robot_monitor_log_node')
+        self._node = context.node
 
         obj_name = 'Robot Monitor'
         self.setObjectName(obj_name)
@@ -95,7 +95,7 @@ class RobotMonitorWidget(QWidget):
         #  this can be used later when writing an rqt_bag plugin
         if topic:
             # create timeline data structure
-            self._timeline = Timeline(topic, DiagnosticArray)
+            self._timeline = Timeline(topic, DiagnosticArray, node=self._node)
             self._timeline.message_updated.connect(
                 self.message_updated, Qt.DirectConnection)
             self._timeline.queue_updated.connect(
@@ -242,7 +242,7 @@ class RobotMonitorWidget(QWidget):
 
     def resizeEvent(self, evt):
         """Overridden from QWidget"""
-        self._log_node.get_logger().debug('RobotMonitorWidget resizeEvent')
+        self._node.get_logger().debug('RobotMonitorWidget resizeEvent')
         if self._timeline_pane:
             self._timeline_pane.redraw.emit()
 
@@ -263,7 +263,7 @@ class RobotMonitorWidget(QWidget):
         :type item: QTreeWidgetItem
         :type column: int
         """
-        self._log_node.get_logger().debug('RobotMonitorWidget _tree_clicked col={}'.format(column))
+        self._node.get_logger().debug('RobotMonitorWidget _tree_clicked col={}'.format(column))
 
         if item.name in self._inspectors:
             self._inspectors[item.name].activateWindow()
@@ -316,7 +316,7 @@ class RobotMonitorWidget(QWidget):
         This closes all the instances on all trees.
         Also unregisters ROS' subscriber, stops timer.
         """
-        self._log_node.get_logger().debug('RobotMonitorWidget in shutdown')
+        self._node.get_logger().debug('RobotMonitorWidget in shutdown')
 
         names = list(self._inspectors.keys())
         for name in names:
