@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from setuptools import setup
 
 package_name = 'rqt_robot_monitor'

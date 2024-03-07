@@ -65,8 +65,6 @@ class TimelineView(QGraphicsView):
         super(TimelineView, self).__init__(parent=parent)
         self._timeline_marker = QIcon.fromTheme('system-search')
 
-        self._log_node = rclpy.create_node('timeline_log_node')
-
         self._min = 0
         self._max = 0
         self._xpos_marker = -1
@@ -130,7 +128,6 @@ class TimelineView(QGraphicsView):
         :param xpos: Marker index
         """
         if self._levels is None:
-            self._log_node.get_logger().warn("Called set_marker_pos before set_levels")
             return
 
         if xpos == -1:

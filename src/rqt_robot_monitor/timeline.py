@@ -51,7 +51,7 @@ class Timeline(QObject):
     pause_changed = Signal(bool)
     position_changed = Signal(int)
 
-    def __init__(self, topic, topic_type, count=30):
+    def __init__(self, topic, topic_type, node, count=30):
         super(Timeline, self).__init__()
         self._mutex = threading.RLock()
         self._queue = deque(maxlen=count)
@@ -65,7 +65,7 @@ class Timeline(QObject):
 
         self._last_message_time = 0
 
-        self._node = rclpy.create_node('timeline_subscriber')
+        self._node = node
         self._subscriber = self._node.create_subscription(topic_type,
                                                           topic,
                                                           self.callback,
