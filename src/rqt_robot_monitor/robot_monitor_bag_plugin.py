@@ -68,8 +68,7 @@ class RobotMonitorBagView(TopicMessageView):
         # generic conversion of DiagnosticStatus from bag type to current type
         #  this should be fairly robust to minor changes in the message format
         status = [DiagnosticStatus(**dict((slot, getattr(m, slot)) for slot in m.__slots__)) for m in msg.status]
-        msg = DiagnosticArray(msg.header, status)
-        self._widget.message_updated.emit(msg)
+        self._widget.message_updated({s.name: s for s in status})
 
     def close(self):
         self._widget.shutdown()  # Closes unclosed popup windows.
