@@ -68,22 +68,25 @@ class InspectorWindow(QWidget):
         self._message_updated_processing = False
         self._queue_updated_processing = False
 
-        self.timeline = timeline
-        self.timeline.message_updated.connect(
-            self.message_updated, Qt.DirectConnection)
-        self.timeline.queue_updated.connect(
-            self.queue_updated, Qt.DirectConnection)
         self._message_updated.connect(
             self._signal_message_updated, Qt.QueuedConnection)
         self._queue_updated.connect(
             self._signal_queue_updated, Qt.QueuedConnection)
 
-        self.timeline_pane = TimelinePane(self, self.timeline.paused)
-        self.timeline_pane.pause_changed.connect(self.timeline.set_paused)
-        self.timeline_pane.position_changed.connect(self.timeline.set_position)
-        self.timeline.pause_changed.connect(self.timeline_pane.set_paused)
-        self.timeline.position_changed.connect(self.timeline_pane.set_position)
-        self.layout_vertical.addWidget(self.timeline_pane, 0)
+        self.timeline = timeline
+
+        if self.timeline is not None:
+            self.timeline.message_updated.connect(
+                self.message_updated, Qt.DirectConnection)
+            self.timeline.queue_updated.connect(
+                self.queue_updated, Qt.DirectConnection)
+
+            self.timeline_pane = TimelinePane(self, self.timeline.paused)
+            self.timeline_pane.pause_changed.connect(self.timeline.set_paused)
+            self.timeline_pane.position_changed.connect(self.timeline.set_position)
+            self.timeline.pause_changed.connect(self.timeline_pane.set_paused)
+            self.timeline.position_changed.connect(self.timeline_pane.set_position)
+            self.layout_vertical.addWidget(self.timeline_pane, 0)
 
         self.snapshot = QPushButton("Snapshot")
         self.snapshot.clicked.connect(self._take_snapshot)

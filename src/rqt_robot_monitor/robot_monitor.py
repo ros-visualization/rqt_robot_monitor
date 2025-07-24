@@ -84,6 +84,10 @@ class RobotMonitorWidget(QWidget):
 
         self._message_updated_processing = False
         self._queue_updated_processing = False
+        self._displayed_status = None
+
+        self._message_updated.connect(
+            self._signal_message_updated, Qt.QueuedConnection)
 
         # if we're given a topic, create a timeline. otherwise, don't
         #  this can be used later when writing an rqt_bag plugin
@@ -94,8 +98,6 @@ class RobotMonitorWidget(QWidget):
                 self.message_updated, Qt.DirectConnection)
             self._timeline.queue_updated.connect(
                 self.queue_updated, Qt.DirectConnection)
-            self._message_updated.connect(
-                self._signal_message_updated, Qt.QueuedConnection)
             self._queue_updated.connect(
                 self._signal_queue_updated, Qt.QueuedConnection)
 
@@ -147,6 +149,14 @@ class RobotMonitorWidget(QWidget):
     @Slot(dict)
     def _signal_message_updated(self, status):
         """ DiagnosticArray message callback """
+
+        self._displayed_status = status
+
+        # If timeline is not set, we need to notify the open inspectors
+        if self._timeline is None:
+            for name, s in status.items():
+                if name in self._inspectors:
+                    self._inspectors[name].message_updated(status)
 
         if self.alternative_view_checkBox.isChecked():
             # Walk the status array and update the tree
@@ -266,6 +276,8 @@ class RobotMonitorWidget(QWidget):
             insp.show()
             insp.closed.connect(self._inspector_closed)
             self._inspectors[item.name] = insp
+            if self._timeline is None:
+                insp.message_updated(self._displayed_status)
 
     def _update_message_state(self):
         """ Update the display if it's stale """
