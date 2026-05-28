@@ -81,11 +81,19 @@ class TimelineView(QGraphicsView):
 
         self.redraw.connect(self._signal_redraw)
 
+    @staticmethod
+    def _event_x(event):
+        # Qt6 removed QMouseEvent.x(); position() returns a QPointF and is
+        # not available on Qt5, so fall back to the Qt5 accessor.
+        if hasattr(event, 'position'):
+            return event.position().x()
+        return event.x()
+
     def mouseReleaseEvent(self, event):
         """
         :type event: QMouseEvent
         """
-        xpos = self.pos_from_x(event.x())
+        xpos = self.pos_from_x(self._event_x(event))
         self.set_marker_pos(xpos)
 
     def mousePressEvent(self, event):
@@ -95,14 +103,14 @@ class TimelineView(QGraphicsView):
         # Pause the timeline
         self.paused.emit(True)
 
-        xpos = self.pos_from_x(event.x())
+        xpos = self.pos_from_x(self._event_x(event))
         self.set_marker_pos(xpos)
 
     def mouseMoveEvent(self, event):
         """
         :type event: QMouseEvent
         """
-        xpos = self.pos_from_x(event.x())
+        xpos = self.pos_from_x(self._event_x(event))
         self.set_marker_pos(xpos)
 
     def pos_from_x(self, x):

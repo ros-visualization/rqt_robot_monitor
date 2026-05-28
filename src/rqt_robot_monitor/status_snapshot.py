@@ -36,6 +36,7 @@
 #   better formatting of key-value pairs in a table
 
 from python_qt_binding.QtWidgets import QTextEdit
+from python_qt_binding.QtGui import QFont
 from python_qt_binding.QtCore import Signal
 
 from diagnostic_msgs.msg import DiagnosticStatus
@@ -69,11 +70,13 @@ class StatusSnapshot(QTextEdit):
 
     def _write(self, k, v):
         # TODO(ahendrix): write these as a table rather than as text
-        self.setFontWeight(75)
+        # Use the QFont.Weight enum so the rendered weight is correct on both
+        # Qt5 (0-99 scale) and Qt6 (1-1000 scale).
+        self.setFontWeight(QFont.Weight.Bold)
         self.insertPlainText(str(k))
         # TODO(ahendrix): de-dupe trailing ':' here
         self.insertPlainText(': ')
 
-        self.setFontWeight(50)
+        self.setFontWeight(QFont.Weight.Normal)
         self.insertPlainText(str(v))
         self.insertPlainText('\n')

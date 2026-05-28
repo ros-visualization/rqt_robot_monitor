@@ -70,13 +70,13 @@ class InspectorWindow(QWidget):
 
         self.timeline = timeline
         self.timeline.message_updated.connect(
-            self.message_updated, Qt.DirectConnection)
+            self.message_updated, Qt.ConnectionType.DirectConnection)
         self.timeline.queue_updated.connect(
-            self.queue_updated, Qt.DirectConnection)
+            self.queue_updated, Qt.ConnectionType.DirectConnection)
         self._message_updated.connect(
-            self._signal_message_updated, Qt.QueuedConnection)
+            self._signal_message_updated, Qt.ConnectionType.QueuedConnection)
         self._queue_updated.connect(
-            self._signal_queue_updated, Qt.QueuedConnection)
+            self._signal_queue_updated, Qt.ConnectionType.QueuedConnection)
 
         self.timeline_pane = TimelinePane(self, self.timeline.paused)
         self.timeline_pane.pause_changed.connect(self.timeline.set_paused)

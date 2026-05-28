@@ -97,13 +97,13 @@ class RobotMonitorWidget(QWidget):
             # create timeline data structure
             self._timeline = Timeline(topic, DiagnosticArray, node=self._node)
             self._timeline.message_updated.connect(
-                self.message_updated, Qt.DirectConnection)
+                self.message_updated, Qt.ConnectionType.DirectConnection)
             self._timeline.queue_updated.connect(
-                self.queue_updated, Qt.DirectConnection)
+                self.queue_updated, Qt.ConnectionType.DirectConnection)
             self._message_updated.connect(
-                self._signal_message_updated, Qt.QueuedConnection)
+                self._signal_message_updated, Qt.ConnectionType.QueuedConnection)
             self._queue_updated.connect(
-                self._signal_queue_updated, Qt.QueuedConnection)
+                self._signal_queue_updated, Qt.ConnectionType.QueuedConnection)
 
             # create timeline pane widget
             self._timeline_pane = TimelinePane(self, self._timeline.paused)
@@ -301,11 +301,11 @@ class RobotMonitorWidget(QWidget):
         """ Update the background color based on staleness """
         p = self.tree_all_devices.palette()
         if self._is_stale:
-            p.setColor(QPalette.Base, Qt.darkGray)
-            p.setColor(QPalette.AlternateBase, Qt.lightGray)
+            p.setColor(QPalette.ColorRole.Base, Qt.GlobalColor.darkGray)
+            p.setColor(QPalette.ColorRole.AlternateBase, Qt.GlobalColor.lightGray)
         else:
-            p.setColor(QPalette.Base, self._original_base_color)
-            p.setColor(QPalette.AlternateBase, self._original_alt_base_color)
+            p.setColor(QPalette.ColorRole.Base, self._original_base_color)
+            p.setColor(QPalette.ColorRole.AlternateBase, self._original_alt_base_color)
         self.tree_all_devices.setPalette(p)
         self.warn_flattree.setPalette(p)
         self.err_flattree.setPalette(p)

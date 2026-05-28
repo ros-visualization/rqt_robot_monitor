@@ -103,7 +103,8 @@ class Timeline(QObject):
 
                     # update pointer to latest message
                     self._current_index = -1
-                    self.message_updated.emit(self._queue[self.position])
+                    if len(self._queue) > 0:
+                        self.message_updated.emit(self._queue[self.position])
                 self.pause_changed.emit(pause)
 
     @property
