@@ -35,28 +35,35 @@
 from python_qt_binding.QtWidgets import QTreeWidgetItem
 import rqt_robot_monitor.util_robot_monitor as util
 
+
 class _StatusItem(QTreeWidgetItem):
     """
-    Internal subclass of QTreeWidgetItem which adds a 'name' member to make
-    it easier to extract the item name and create an inspector when an item
-    is clicked
+    Internal subclass of QTreeWidgetItem.
+
+    Adds a 'name' member to make it easier to extract the item name and
+    create an inspector when an item is clicked.
     """
+
     def __init__(self, name):
         super(_StatusItem, self).__init__()
         self.name = name
 
+
 class StatusItem(object):
     """
-    A class that wraps the default QTreeWidgetItem, so that we can manipulate
-    all of the nodes in the tree in the same way (even the invisible root node)
+    A class that wraps the default QTreeWidgetItem.
+
+    This lets us manipulate all of the nodes in the tree in the same way
+    (even the invisible root node).
     """
+
     def __init__(self, item=None):
         self._children = {}
         self.updated = False
         if item is not None:
             self._item = item
         else:
-            self._item = _StatusItem("NONAME")
+            self._item = _StatusItem('NONAME')
 
     def update(self, status, displayname):
         self.updated = True
@@ -82,7 +89,7 @@ class StatusItem(object):
     # functions that make this object behave like a dict
     def __getitem__(self, key):
         # if item doesn't exist, create a sane default for it
-        if not key in self._children:
+        if key not in self._children:
             self._children[key] = StatusItem()
             self._item.addChild(self._children[key]._item)
         return self._children[key]

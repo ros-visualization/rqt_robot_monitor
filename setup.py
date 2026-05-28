@@ -20,12 +20,11 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     author="Austin Hendrix, Isaac Saito, Ze'Ev Klapow, Josh Faust, Aaron Blasdel",
-    maintainer="Arne Hitzmann, Austin Hendrix",
-    maintainer_email="arne.hitzmann@gmail.com, namniart@gmail.com",
-    keywords=["ROS 2"],
-    classifiers = [
+    maintainer='Arne Hitzmann, Austin Hendrix',
+    maintainer_email='arne.hitzmann@gmail.com, namniart@gmail.com',
+    keywords=['ROS 2'],
+    classifiers=[
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python',
         'Topic :: Software Development',
     ],
@@ -36,7 +35,11 @@ setup(
         "http://www.ros.org/wiki/robot_monitor" (robot_monitor).'
     ),
     license='BSD',
-    tests_require=['pytest'],
+    extras_require={
+        'test': [
+            'pytest',
+        ],
+    },
     entry_points={
         'console_scripts': [
             'rqt_robot_monitor = rqt_robot_monitor.robot_monitor:main'
