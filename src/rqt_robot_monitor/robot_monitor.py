@@ -32,28 +32,29 @@
 #
 # Author: Isaac Saito, Ze'ev Klapow, Austin Hendrix
 
-import os, sys
+import os
+import sys
 
 from ament_index_python.packages import get_package_share_directory
-
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import QTimer, Signal, Qt, Slot
+from python_qt_binding.QtCore import Qt, QTimer, Signal, Slot
 from python_qt_binding.QtGui import QPalette
-from python_qt_binding.QtWidgets import QWidget, QTreeWidgetItem
+from python_qt_binding.QtWidgets import QTreeWidgetItem, QWidget
 import rclpy
+from rqt_gui.main import Main
 
+from . import util_robot_monitor as util
 from .inspector_window import InspectorWindow
 from .status_item import StatusItem
-from .timeline_pane import TimelinePane
 from .timeline import Timeline
-from . import util_robot_monitor as util
-
-from rqt_gui.main import Main
+from .timeline_pane import TimelinePane
 
 
 class RobotMonitorWidget(QWidget):
     """
+    Widget that displays aggregated diagnostics.
+
     NOTE: RobotMonitorWidget.shutdown function needs to be called
     when the instance of this class terminates.
 
@@ -70,11 +71,12 @@ class RobotMonitorWidget(QWidget):
 
     def __init__(self, context, topic=None):
         """
+        Initialize the widget.
+
         :param context: plugin context hook to enable adding widgets as a
                         ROS_GUI pane, 'PluginContext'
         :param topic: Diagnostic topic to subscribe to 'str'
         """
-
         super(RobotMonitorWidget, self).__init__()
 
         robot_share_dir = get_package_share_directory('rqt_robot_monitor')
@@ -142,7 +144,8 @@ class RobotMonitorWidget(QWidget):
     @Slot(dict)
     def message_updated(self, status):
         """
-        This method just calls _signal_message_updated in 'best effort' manner.
+        Call _signal_message_updated in 'best effort' manner.
+
         This method should be called by signal with DirectConnection.
         """
         if self._message_updated_processing:
@@ -152,8 +155,7 @@ class RobotMonitorWidget(QWidget):
 
     @Slot(dict)
     def _signal_message_updated(self, status):
-        """ DiagnosticArray message callback """
-
+        """Handle a DiagnosticArray message callback."""
         if self.alternative_view_checkBox.isChecked():
             # Walk the status array and update the tree
             for name, status in status.items():
@@ -165,8 +167,8 @@ class RobotMonitorWidget(QWidget):
                 if path[0] == '':
                     path = path[1:]
                 tmp_tree.update(status, util.get_resource_name(name))
-                    #tmp_tree = tmp_tree['Robot']
-                    #tmp_tree.update(status, 'Robot')
+                # tmp_tree = tmp_tree['Robot']
+                # tmp_tree.update(status, 'Robot')
 
                 leaf = path[-1]
                 for i, p in enumerate(path):
@@ -200,14 +202,13 @@ class RobotMonitorWidget(QWidget):
                 tmp_tree.update(status, util.get_resource_name(name))
 
                 # Check for warnings, skip non-leaf elements
-                if status.level == DiagnosticStatus.WARN and status.message != "Warning":
+                if status.level == DiagnosticStatus.WARN and status.message != 'Warning':
                     self._warn_tree[name].update(status, name)
 
                 # Check for errors, skip non-leaf elements
-                if status.level in [DiagnosticStatus.ERROR, DiagnosticStatus.STALE] and status.message != "Error":
+                if (status.level in [DiagnosticStatus.ERROR, DiagnosticStatus.STALE]
+                        and status.message != 'Error'):
                     self._err_tree[name].update(status, name)
-
-
 
         # For any items in the tree that were not updated, remove them
         self._tree.prune()
@@ -223,7 +224,8 @@ class RobotMonitorWidget(QWidget):
     @Slot()
     def queue_updated(self):
         """
-        This method just calls _signal_queue_updated in 'best effort' manner.
+        Call _signal_queue_updated in 'best effort' manner.
+
         This method should be called by signal with DirectConnection.
         """
         if self._queue_updated_processing:
@@ -241,14 +243,14 @@ class RobotMonitorWidget(QWidget):
         self._queue_updated_processing = False
 
     def resizeEvent(self, evt):
-        """Overridden from QWidget"""
+        """Overridden from QWidget."""
         self._node.get_logger().debug('RobotMonitorWidget resizeEvent')
         if self._timeline_pane:
             self._timeline_pane.redraw.emit()
 
     @Slot(str)
     def _inspector_closed(self, name):
-        """ Called when an inspector window is closed """
+        """Handle an inspector window being closed."""
         try:
             self._inspectors[name].deleteLater()
             del self._inspectors[name]
@@ -258,7 +260,7 @@ class RobotMonitorWidget(QWidget):
     @Slot(QTreeWidgetItem, int)
     def _tree_clicked(self, item, column):
         """
-        Slot to QTreeWidget.itemDoubleClicked
+        Slot to QTreeWidget.itemDoubleClicked.
 
         :type item: QTreeWidgetItem
         :type column: int
@@ -274,7 +276,7 @@ class RobotMonitorWidget(QWidget):
             self._inspectors[item.name] = insp
 
     def _update_message_state(self):
-        """ Update the display if it's stale """
+        """Update the display if it's stale."""
         if self._timeline is not None:
             # Spin the node to get messages
             if rclpy.ok():
@@ -285,20 +287,20 @@ class RobotMonitorWidget(QWidget):
 
                 time_diff = int(self._timeline.data_age)
 
-                msg_template = "Last message received %s %s ago"
+                msg_template = 'Last message received %s %s ago'
                 if time_diff == 1:
-                    msg = msg_template % (time_diff, "second")
+                    msg = msg_template % (time_diff, 'second')
                 else:
-                    msg = msg_template % (time_diff, "seconds")
+                    msg = msg_template % (time_diff, 'seconds')
                 self._timeline_pane._msg_label.setText(msg)
                 if previous_stale_state != self._is_stale:
                     self._update_background_color()
             else:
                 # no messages received yet
-                self._timeline_pane._msg_label.setText("No messages received")
+                self._timeline_pane._msg_label.setText('No messages received')
 
     def _update_background_color(self):
-        """ Update the background color based on staleness """
+        """Update the background color based on staleness."""
         p = self.tree_all_devices.palette()
         if self._is_stale:
             p.setColor(QPalette.ColorRole.Base, Qt.GlobalColor.darkGray)
@@ -312,9 +314,10 @@ class RobotMonitorWidget(QWidget):
 
     def shutdown(self):
         """
-        This needs to be called whenever this class terminates.
-        This closes all the instances on all trees.
-        Also unregisters ROS' subscriber, stops timer.
+        Clean up whenever this class terminates.
+
+        This closes all the instances on all trees. Also unregisters ROS'
+        subscriber, stops timer.
         """
         self._node.get_logger().debug('RobotMonitorWidget in shutdown')
 

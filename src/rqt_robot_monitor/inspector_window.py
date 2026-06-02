@@ -33,14 +33,10 @@
 # Author: Isaac Saito, Ze'ev Klapow, Austin Hendrix
 
 from python_qt_binding.QtCore import Qt, Signal, Slot
-from python_qt_binding.QtWidgets import QPushButton, QTextEdit, QVBoxLayout, QWidget
-import rclpy
+from python_qt_binding.QtWidgets import QPushButton, QVBoxLayout, QWidget
 
-from .status_snapshot import StatusSnapshot, level_to_text
+from .status_snapshot import StatusSnapshot
 from .timeline_pane import TimelinePane
-from . import util_robot_monitor as util
-
-from diagnostic_msgs.msg import DiagnosticArray
 
 
 class InspectorWindow(QWidget):
@@ -50,11 +46,13 @@ class InspectorWindow(QWidget):
 
     def __init__(self, parent, name, timeline):
         """
+        Initialize the inspector window.
+
         :param name: Name of inspecting diagnostic status
         :param timeline: Timeline object from which a status is fetched
         """
-        #TODO(Isaac) UI construction that currently is done in this method,
-        #            needs to be done in .ui file.
+        # TODO(Isaac) UI construction that currently is done in this method,
+        #             needs to be done in .ui file.
         super(InspectorWindow, self).__init__(parent=parent)
         self.setWindowTitle(name)
         self._name = name
@@ -85,7 +83,7 @@ class InspectorWindow(QWidget):
         self.timeline.position_changed.connect(self.timeline_pane.set_position)
         self.layout_vertical.addWidget(self.timeline_pane, 0)
 
-        self.snapshot = QPushButton("Snapshot")
+        self.snapshot = QPushButton('Snapshot')
         self.snapshot.clicked.connect(self._take_snapshot)
         self.layout_vertical.addWidget(self.snapshot)
 
@@ -96,9 +94,10 @@ class InspectorWindow(QWidget):
         self.resize(400, 600)
 
     def closeEvent(self, event):
-        """ called when this window is closed
+        """
+        Handle this window being closed.
 
-        Calls close on all snapshots, and emits the closed signal
+        Calls close on all snapshots, and emits the closed signal.
         """
         # TODO: are snapshots kept around even after they're closed?
         #       this appears to work even if the user closes some snapshots,
@@ -110,7 +109,8 @@ class InspectorWindow(QWidget):
     @Slot()
     def queue_updated(self):
         """
-        This method just calls _signal_queue_updated in 'best effort' manner.
+        Call _signal_queue_updated in 'best effort' manner.
+
         This method should be called by signal with DirectConnection.
         """
         if self._queue_updated_processing:
@@ -131,7 +131,8 @@ class InspectorWindow(QWidget):
     @Slot(dict)
     def message_updated(self, status):
         """
-        This method just calls _signal_message_updated in 'best effort' manner.
+        Call _signal_message_updated in 'best effort' manner.
+
         This method should be called by signal with DirectConnection.
         """
         if self._message_updated_processing:
@@ -145,7 +146,7 @@ class InspectorWindow(QWidget):
 
         try:
             status = status[self._name]
-        except:
+        except Exception:
             return
 
         scroll_value = self.disp.verticalScrollBar().value()

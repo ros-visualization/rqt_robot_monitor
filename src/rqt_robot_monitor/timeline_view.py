@@ -33,16 +33,14 @@
 # Author: Isaac Saito, Ze'ev Klapow, Austin Hendrix
 
 from math import floor
-from collections import deque
-import rclpy
 
+from diagnostic_msgs.msg import DiagnosticStatus
 from python_qt_binding.QtCore import QPointF, Signal, Slot
 from python_qt_binding.QtGui import QColor, QIcon
-from python_qt_binding.QtWidgets import QGraphicsPixmapItem, QGraphicsView, \
-    QGraphicsScene
+from python_qt_binding.QtWidgets import QGraphicsPixmapItem, QGraphicsScene, \
+    QGraphicsView
 
 from . import util_robot_monitor as util
-from diagnostic_msgs.msg import DiagnosticStatus
 
 
 class TimelineView(QGraphicsView):
@@ -61,7 +59,6 @@ class TimelineView(QGraphicsView):
 
     def __init__(self, parent=None):
         """Cannot take args other than parent due to loadUi limitation."""
-
         super(TimelineView, self).__init__(parent=parent)
         self._timeline_marker = QIcon.fromTheme('system-search')
 
@@ -91,6 +88,8 @@ class TimelineView(QGraphicsView):
 
     def mouseReleaseEvent(self, event):
         """
+        Move the marker to the released position.
+
         :type event: QMouseEvent
         """
         xpos = self.pos_from_x(self._event_x(event))
@@ -98,6 +97,8 @@ class TimelineView(QGraphicsView):
 
     def mousePressEvent(self, event):
         """
+        Pause the timeline and move the marker to the clicked position.
+
         :type event: QMouseEvent
         """
         # Pause the timeline
@@ -108,6 +109,8 @@ class TimelineView(QGraphicsView):
 
     def mouseMoveEvent(self, event):
         """
+        Move the marker to follow the dragged position.
+
         :type event: QMouseEvent
         """
         xpos = self.pos_from_x(self._event_x(event))
@@ -115,7 +118,7 @@ class TimelineView(QGraphicsView):
 
     def pos_from_x(self, x):
         """
-        Get the index in the timeline from the mouse click position
+        Get the index in the timeline from the mouse click position.
 
         :param x: Position relative to self widget.
         :return: Index
@@ -131,7 +134,7 @@ class TimelineView(QGraphicsView):
     @Slot(int)
     def set_marker_pos(self, xpos):
         """
-        Set marker position from index
+        Set marker position from index.
 
         :param xpos: Marker index
         """
@@ -166,20 +169,21 @@ class TimelineView(QGraphicsView):
         self.position_changed.emit(self._xpos_marker)
         self.redraw.emit()
 
-    def _clamp(self, val, min, max):
+    def _clamp(self, val, min_val, max_val):
         """
-        Judge if val is within the range given by min & max.
-        If not, return either min or max.
+        Judge if val is within the range given by min_val & max_val.
+
+        If not, return either min_val or max_val.
 
         :type val: any number format
-        :type min: any number format
-        :type max: any number format
+        :type min_val: any number format
+        :type max_val: any number format
         :rtype: int
         """
-        if (val < min):
-            return min
-        if (val > max):
-            return max
+        if (val < min_val):
+            return min_val
+        if (val > max_val):
+            return max_val
         return val
 
     @Slot(list)
@@ -189,10 +193,7 @@ class TimelineView(QGraphicsView):
 
     @Slot()
     def _signal_redraw(self):
-        """
-        Gets called either when new msg comes in or when marker is moved by
-        user.
-        """
+        """Redraw when a new msg comes in or when the marker is moved by user."""
         if self._levels is None:
             return
 
@@ -234,7 +235,7 @@ class TimelineView(QGraphicsView):
 
         # Convert get horizontal pixel value of selected cell's center
         xpos_marker_in_pixel = (xpos_marker * w +
-                       (w / 2.0) - (self._timeline_marker_width / 2.0))
+                                (w / 2.0) - (self._timeline_marker_width / 2.0))
         pos_marker = QPointF(xpos_marker_in_pixel, 0)
 
         # Need to instantiate marker everytime since it gets deleted

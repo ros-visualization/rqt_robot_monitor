@@ -35,15 +35,17 @@
 # TODO(ahendrix):
 #   better formatting of key-value pairs in a table
 
-from python_qt_binding.QtWidgets import QTextEdit
-from python_qt_binding.QtGui import QFont
-from python_qt_binding.QtCore import Signal
-
 from diagnostic_msgs.msg import DiagnosticStatus
+from python_qt_binding.QtCore import Signal
+from python_qt_binding.QtGui import QFont
+from python_qt_binding.QtWidgets import QTextEdit
+
 from .util_robot_monitor import level_to_text
 
+
 class StatusSnapshot(QTextEdit):
-    """Display a single static status message. Helps facilitate copy/paste"""
+    """Display a single static status message. Helps facilitate copy/paste."""
+
     write_status = Signal(DiagnosticStatus)
 
     def __init__(self, status=None, parent=None):
@@ -58,11 +60,11 @@ class StatusSnapshot(QTextEdit):
 
     def _write_status(self, status):
         self.clear()
-        self._write("Full Name", status.name)
-        self._write("Component", status.name.split('/')[-1])
-        self._write("Hardware ID", status.hardware_id)
-        self._write("Level", level_to_text(status.level))
-        self._write("Message", status.message)
+        self._write('Full Name', status.name)
+        self._write('Component', status.name.split('/')[-1])
+        self._write('Hardware ID', status.hardware_id)
+        self._write('Level', level_to_text(status.level))
+        self._write('Message', status.message)
         self.insertPlainText('\n')
 
         for value in status.values:
