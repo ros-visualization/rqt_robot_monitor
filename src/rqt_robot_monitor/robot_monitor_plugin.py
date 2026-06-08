@@ -38,16 +38,19 @@ from .robot_monitor import RobotMonitorWidget
 
 
 class RobotMonitorPlugin(Plugin):
+
     def __init__(self, context):
         """
+        Initialize the plugin.
+
         :type context: qt_gui.PluginContext
         """
         super(RobotMonitorPlugin, self).__init__(context)
         self._robot_monitor = RobotMonitorWidget(context, '/diagnostics_agg')
         if context.serial_number() > 1:
             self._robot_monitor.setWindowTitle(
-                 self._robot_monitor.windowTitle() +
-                      (' (%d)' % context.serial_number()))
+                self._robot_monitor.windowTitle() +
+                (' (%d)' % context.serial_number()))
         context.add_widget(self._robot_monitor)
         self.setObjectName('rqt Robot Monitor')
 

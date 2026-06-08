@@ -35,13 +35,15 @@
 # Author: Austin Hendrix
 
 
-from rqt_bag.plugins.plugin import Plugin
+from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 from rqt_bag import TopicMessageView
+from rqt_bag.plugins.plugin import Plugin
 
 from .robot_monitor import RobotMonitorWidget
-from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
+
 
 class RobotMonitorBagPlugin(Plugin):
+
     def __init__(self):
         pass
 
@@ -54,12 +56,13 @@ class RobotMonitorBagPlugin(Plugin):
     def get_message_types(self):
         return ['diagnostic_msgs/DiagnosticArray']
 
+
 class RobotMonitorBagView(TopicMessageView):
     name = 'Diagnostics Viewer'
 
     def __init__(self, timeline, parent, topic):
         super(RobotMonitorBagView, self).__init__(timeline, parent, topic)
-        
+
         self._widget = RobotMonitorWidget(parent)
         parent.layout().addWidget(self._widget)
 
@@ -67,7 +70,11 @@ class RobotMonitorBagView(TopicMessageView):
         msg = msg_details[1]
         # generic conversion of DiagnosticStatus from bag type to current type
         #  this should be fairly robust to minor changes in the message format
-        status = [DiagnosticStatus(**dict((field_name, getattr(m, field_name)) for field_name in m.get_fields_and_field_types().keys())) for m in msg.status]
+        status = [
+            DiagnosticStatus(
+                **{field_name: getattr(m, field_name)
+                   for field_name in m.get_fields_and_field_types().keys()})
+            for m in msg.status]
         msg = DiagnosticArray(msg.header, status)
         self._widget.message_updated.emit(msg)
 

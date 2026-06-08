@@ -34,21 +34,15 @@
 
 import os
 
+from ament_index_python.packages import get_package_share_directory
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Signal, Slot
 from python_qt_binding.QtWidgets import QWidget
-import rclpy
-
-from ament_index_python.packages import get_package_share_directory
-
-from .timeline import Timeline
 
 
 class TimelinePane(QWidget):
-    """
-    This class defines the pane where timeline and its related components
-    are displayed.
-    """
+    """Define the pane where timeline and its related components are displayed."""
+
     status_updated = Signal(list)
     pause_changed = Signal(bool)
     position_changed = Signal(int)
@@ -56,6 +50,8 @@ class TimelinePane(QWidget):
 
     def __init__(self, parent, paused=False):
         """
+        Initialize the pane.
+
         Because this class is intended to be instantiated via Qt's .ui file,
         taking argument other than parent widget is not possible, which is
         ported to set_timeline_data method. That said, set_timeline_data must
@@ -93,6 +89,8 @@ class TimelinePane(QWidget):
     @Slot(list)
     def set_levels(self, levels):
         """
+        Set the status levels shown in the timeline.
+
         :param levels: List of status levels
         """
         self._timeline_view.set_levels(levels)

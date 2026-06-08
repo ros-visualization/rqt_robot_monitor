@@ -33,19 +33,18 @@
 # Author: Austin Hendrix
 
 from collections import deque
-from python_qt_binding.QtCore import Signal, Slot, QObject
-
-import rclpy
 import threading
 
-from diagnostic_msgs.msg import DiagnosticArray
+from python_qt_binding.QtCore import QObject, Signal, Slot
 
 
 class Timeline(QObject):
     """
-    A class which represents the status history of diagnostics
-    It can be queried for a past history of diagnostics, and paused
+    A class which represents the status history of diagnostics.
+
+    It can be queried for a past history of diagnostics, and paused.
     """
+
     message_updated = Signal(dict)
     queue_updated = Signal()
     pause_changed = Signal(bool)
@@ -56,7 +55,7 @@ class Timeline(QObject):
         self._mutex = threading.RLock()
         self._queue = deque(maxlen=count)
         self._count = count
-        self._current_index = -1 # rightmost item
+        self._current_index = -1  # rightmost item
 
         # the paused queue is a backup copy of the queue that is updated with
         # new messages while the timeline is paused, so that new messages and
@@ -70,29 +69,30 @@ class Timeline(QObject):
                                                           topic,
                                                           self.callback,
                                                           qos_profile=10)
-        
+
         self._node.get_logger().debug(
-            "Timeline subscriber created with topic type {}, topic name {}".format(
+            'Timeline subscriber created with topic type {}, topic name {}'.format(
                 topic_type, topic))
 
     def shutdown(self):
         """
-        Turn off this Timeline
-        Internally, this just shuts down the subscriber
+        Turn off this Timeline.
+
+        Internally, this just shuts down the subscriber.
         """
-        self._node.get_logger().debug("Shutting down subscriber")
+        self._node.get_logger().debug('Shutting down subscriber')
         self._node.destroy_subscription(self._subscriber)
         self._subscriber = None
 
     @Slot(bool)
     def set_paused(self, pause):
         """
-        Slot, to be called to change the pause status of the timeline
+        Change the pause status of the timeline.
 
         This is generally intended to be connected to the status signal
-        from a button or checkbox
+        from a button or checkbox.
         """
-        self._node.get_logger().debug("Pause status: {}".format(pause))
+        self._node.get_logger().debug('Pause status: {}'.format(pause))
         if pause != self.paused:
             with self._mutex:
                 if pause:
@@ -103,29 +103,30 @@ class Timeline(QObject):
 
                     # update pointer to latest message
                     self._current_index = -1
-                    self.message_updated.emit(self._queue[self.position])
+                    if len(self._queue) > 0:
+                        self.message_updated.emit(self._queue[self.position])
                 self.pause_changed.emit(pause)
 
     @property
     def paused(self):
-        """ True if this timeline is paused """
+        """Return True if this timeline is paused."""
         with self._mutex:
             return self._paused_queue is not None
 
     def callback(self, msg):
         """
-        ROS Callback for new diagnostic messages
+        Handle new diagnostic messages (ROS callback).
 
         Puts new msg into the queue, and emits a signal to let listeners know
-        that the timeline has been updated
+        that the timeline has been updated.
 
         If the timeline is paused, new messages are placed into a separate
-        queue and swapped back in when the timeline is unpaused
+        queue and swapped back in when the timeline is unpaused.
 
         :type msg: Either DiagnosticArray or DiagnosticsStatus. Can be
                    determined by __init__'s arg "msg_callback".
         """
-        self._node.get_logger().debug("Callback called")
+        self._node.get_logger().debug('Callback called')
         self._last_message_time = self._node.get_clock().now().seconds_nanoseconds()[0]
         dic = {status.name: status for status in msg.status}
 
@@ -141,15 +142,16 @@ class Timeline(QObject):
     @property
     def has_messages(self):
         """
-        True if this timeline has received any messages.
-        False if no messages have been received yet
+        Return True if this timeline has received any messages.
+
+        False if no messages have been received yet.
         """
         with self._mutex:
             return len(self._queue) > 0
 
     @property
     def data_age(self):
-        """ Get the age (in seconds) of the most recent diagnostic message """
+        """Get the age (in seconds) of the most recent diagnostic message."""
         # current_time = rospy.get_time()
         current_time = self._node.get_clock().now().seconds_nanoseconds()[0]
         time_diff = current_time - self._last_message_time
@@ -157,7 +159,7 @@ class Timeline(QObject):
 
     @property
     def is_stale(self):
-        """ True is this timeline is stale. """
+        """Return True if this timeline is stale."""
         return self.data_age > 10.0
 
     @property
@@ -194,7 +196,7 @@ class Timeline(QObject):
         with self._mutex:
             try:
                 return [status[name] for status in list(self._queue)]
-            except:
+            except Exception:
                 return None
 
     def __len__(self):
