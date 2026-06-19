@@ -45,6 +45,7 @@
   <exec_depend>qt_gui</exec_depend>
   <exec_depend>qt_gui_py_common</exec_depend>
   <exec_depend>rclpy</exec_depend>
+  <exec_depend>rqt_bag</exec_depend>
   <exec_depend>rqt_py_common</exec_depend>
   <exec_depend>rqt_gui</exec_depend>
   <exec_depend>rqt_gui_py</exec_depend>
@@ -54,6 +55,7 @@
   <test_depend>python3-pytest</test_depend>
 
   <export>
+    <rqt_bag plugin="${prefix}/bag_plugin.xml" />
     <rqt_gui plugin="${prefix}/plugin.xml" />
     <build_type>ament_python</build_type>
   </export>

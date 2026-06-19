@@ -54,7 +54,7 @@ class RobotMonitorBagPlugin(Plugin):
         return None
 
     def get_message_types(self):
-        return ['diagnostic_msgs/DiagnosticArray']
+        return ['diagnostic_msgs/msg/DiagnosticArray']
 
 
 class RobotMonitorBagView(TopicMessageView):
