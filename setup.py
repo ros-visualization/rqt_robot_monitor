@@ -4,7 +4,7 @@ package_name = 'rqt_robot_monitor'
 
 setup(
     name=package_name,
-    version='1.0.6',
+    version='1.0.7',
     packages=[package_name],
     package_dir={'': 'src'},
     data_files=[

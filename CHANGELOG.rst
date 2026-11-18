@@ -2,6 +2,12 @@
 Changelog for package rqt_robot_monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.7 (2026-11-19)
+------------------
+* Support Qt5/qt6 (`#52 <https://github.com/ros-visualization/rqt_robot_monitor/issues/52>`_)
+* Include flake8 and pep257 (`#51 <https://github.com/ros-visualization/rqt_robot_monitor/issues/51>`_)
+* Switch shebang statement to python3 (`#46 <https://github.com/ros-visualization/rqt_robot_monitor/issues/46>`_)
+
 1.0.6 (2024-05-15)
 ------------------
 * Fix warning for setup.cfg that separation by dash will be removed (`#45 <https://github.com/ros-visualization/rqt_robot_monitor/issues/45>`_)
